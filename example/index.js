@@ -12,4 +12,8 @@ const system = System(config, on)
 
 system.up(err => {
   if (err) throw err
+
+  system.down(err => {
+    if (err) throw err
+  })
 })

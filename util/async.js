@@ -3,6 +3,7 @@ const runWaterfall = require('run-waterfall')
 
 module.exports = {
   iff,
+  ignoreValues,
   map,
   noop,
   series,
@@ -16,6 +17,13 @@ function iff (predicate, ifTrue, ifFalse = noop) {
     const cb = args.pop()
     if (predicate(...args)) ifTrue(...args, cb)
     else ifFalse(...args, cb)
+  }
+}
+
+function ignoreValues (continuable) {
+  return (...args) => {
+    const cb = args.pop()
+    continuable(cb)
   }
 }
 
@@ -37,7 +45,8 @@ function noop (...args) {
 }
 
 function series (continuables) {
-  return cb => runSeries(continuables, cb)
+  // TODO pass values into nested continuables?
+  return ignoreValues(cb => runSeries(continuables, cb))
 }
 
 /* eslint-disable handle-callback-err */
@@ -59,5 +68,6 @@ function tap (fn) {
 }
 
 function waterfall (continuables) {
-  return cb => runWaterfall(continuables, cb)
+  // TODO pass values into nested continuables?
+  return ignoreValues(cb => runWaterfall(continuables, cb))
 }

@@ -1,8 +1,8 @@
 const DockerApi = require('docker-remote-api')
-const { isNil } = require('lodash')
 // const { safeDump: toYaml } = require('js-yaml')
 
-const async = require('./async')
+const async = require('./util/async')
+const Network = require('./resources/network')
 
 module.exports = {
   default: System,
@@ -38,83 +38,21 @@ function System (options = {}, on = {}) {
 
   return {
     up: async.series(
-      [...stacks, ...networks, ...volumes].map(resource => {
+      [...networks, ...volumes, ...stacks].map(resource => {
         return cb => resource.up(cb)
       })
     ),
     down: async.series(
-      [...stacks, ...networks, ...volumes].map(resource => {
+      [...stacks, ...volumes, ...networks].map(resource => {
         return cb => resource.down(cb)
       })
     )
   }
 }
 
-function Network (docker, options, on) {
-  return {
-    up: async.waterfall([
-      async.tap(() => on.debug('network:up', { options })),
-      async.swallowError(inspectId(options)),
-      async.iff(isNil, async.series([create(options), inspect(options)]))
-    ]),
-    down: cb => {
-      on.debug('network:down', { options })
-      cb()
-    }
-  }
-
-  function create (options) {
-    const { name } = options
-    return cb => {
-      docker.post(
-        '/networks/create',
-        {
-          json: {
-            Name: name
-          }
-        },
-        (err, response) => {
-          if (err) return cb(err)
-          if (response.warning) {
-            on.warn({
-              action: 'network:create',
-              options,
-              message: response.Warning
-            })
-          }
-          on.event({
-            action: 'network:create',
-            options,
-            message: `Network ${name} created.`,
-            response
-          })
-          cb(null, response.Id)
-        }
-      )
-    }
-  }
-
-  function inspectId (options) {
-    return async.waterfall([inspect(options), async.map(value => value.Id)])
-  }
-
-  function inspect (options) {
-    const { name } = options
-    return cb => {
-      docker.get(`/networks/${name}`, { json: true }, cb)
-    }
-  }
-
-  /*
-  function remove (options) {
-
-  }
-  */
-}
-
 function Stack (docker, options, on) {
   return {
-    // use --prune!
+    // TODO use deploy --prune!
     up: cb => {
       on.debug('stack:up', { options })
       cb()

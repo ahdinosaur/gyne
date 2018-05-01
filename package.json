@@ -65,6 +65,7 @@
     "es2040": "^1.2.3",
     "js-yaml": "^3.11.0",
     "lei-download": "^1.0.2",
+    "lodash": "^4.17.10",
     "run-series": "^1.1.8",
     "run-waterfall": "^1.1.6"
   }
