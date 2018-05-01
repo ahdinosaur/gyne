@@ -1,4 +1,5 @@
 const DockerApi = require('docker-remote-api')
+const { property } = require('lodash')
 // const { safeDump: toYaml } = require('js-yaml')
 
 const async = require('./util/async')
@@ -38,16 +39,14 @@ function System (options = {}, on = {}) {
   })
 
   return {
-    up: async.series(
-      [...networks, ...volumes, ...stacks].map(resource => {
-        return cb => resource.up(cb)
-      })
-    ),
-    down: async.series(
-      [...stacks, ...volumes, ...networks].map(resource => {
-        return cb => resource.down(cb)
-      })
-    )
+    up: async.series([
+      async.parallel([...networks, ...volumes].map(property('up'))),
+      async.parallel(stacks.map(property('up')))
+    ]),
+    down: async.series([
+      async.parallel([...networks, ...volumes].map(property('down'))),
+      async.parallel(stacks.map(property('down')))
+    ])
   }
 }
 

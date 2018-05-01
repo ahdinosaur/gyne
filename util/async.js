@@ -1,11 +1,13 @@
 const runSeries = require('run-series')
 const runWaterfall = require('run-waterfall')
+const runParallel = require('run-parallel')
 
 module.exports = {
   iff,
   ignoreValues,
   map,
   noop,
+  parallel,
   series,
   swallowError,
   tap,
@@ -42,6 +44,18 @@ function map (fn) {
 function noop (...args) {
   const cb = args.pop()
   cb(null, ...args)
+}
+
+function parallel (continuables) {
+  return (...topArgs) => {
+    const topCb = topArgs.pop()
+    const enhancedContinuables = continuables.map(continuable => {
+      return cb => {
+        continuable(...topArgs, cb)
+      }
+    })
+    runParallel(enhancedContinuables, topCb)
+  }
 }
 
 function series (continuables) {

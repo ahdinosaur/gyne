@@ -66,6 +66,7 @@
     "js-yaml": "^3.11.0",
     "lei-download": "^1.0.2",
     "lodash": "^4.17.10",
+    "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
     "run-waterfall": "^1.1.6"
   }
