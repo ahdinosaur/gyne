@@ -1,19 +1,14 @@
 const { System } = require('../')
 
 const config = require('./config')
+const on = {
+  event: console.log,
+  warn: console.warn,
+  error: console.error
+}
 
-const system = System(config, err => {
+const system = System(config, on)
+
+system.up(err => {
   if (err) throw err
-})
-
-system.on('network', function (message) {
-  console.log('network', message)
-})
-
-system.on('volume', function (message) {
-  console.log('volume', message)
-})
-
-system.on('stack', function (message) {
-  console.log('stack', message)
 })
