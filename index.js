@@ -3,6 +3,7 @@ const DockerApi = require('docker-remote-api')
 
 const async = require('./util/async')
 const Network = require('./resources/network')
+const Volume = require('./resources/volume')
 
 module.exports = {
   default: System,
@@ -59,19 +60,6 @@ function Stack (docker, options, on) {
     },
     down: cb => {
       on.debug('stack:down', { options })
-      cb()
-    }
-  }
-}
-
-function Volume (docker, options, on) {
-  return {
-    up: cb => {
-      on.debug('volume:up', { options })
-      cb()
-    },
-    down: cb => {
-      on.debug('volume:down', { options })
       cb()
     }
   }
