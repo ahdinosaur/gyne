@@ -45,8 +45,15 @@ function noop (...args) {
 }
 
 function series (continuables) {
-  // TODO pass values into nested continuables?
-  return ignoreValues(cb => runSeries(continuables, cb))
+  return (...topArgs) => {
+    const topCb = topArgs.pop()
+    const enhancedContinuables = continuables.map(continuable => {
+      return cb => {
+        continuable(...topArgs, cb)
+      }
+    })
+    runSeries(enhancedContinuables, topCb)
+  }
 }
 
 /* eslint-disable handle-callback-err */
@@ -68,6 +75,14 @@ function tap (fn) {
 }
 
 function waterfall (continuables) {
-  // TODO pass values into nested continuables?
-  return ignoreValues(cb => runWaterfall(continuables, cb))
+  return (...topArgs) => {
+    const topCb = topArgs.pop()
+    const enhancedContinuables = continuables.map(continuable => {
+      return (...args) => {
+        const cb = args.pop()
+        continuable(...topArgs, ...args, cb)
+      }
+    })
+    runWaterfall(enhancedContinuables, topCb)
+  }
 }

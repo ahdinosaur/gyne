@@ -9,7 +9,10 @@ function Network (docker, options, on) {
     up: async.waterfall([
       async.tap(() => on.debug('network:up', { options })),
       async.swallowError(inspectId(options)),
-      async.iff(isNil, async.series([create(options), inspect(options)]))
+      async.iff(
+        isNil,
+        async.ignoreValues(async.series([create(options), inspect(options)]))
+      )
     ]),
     down: async.waterfall([
       async.tap(() => on.debug('network:down', { options })),
