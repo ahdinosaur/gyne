@@ -1,7 +1,8 @@
 const DockerApi = require('docker-remote-api')
-const runSeries = require('run-series')
-const runWaterfall = require('run-waterfall')
 // const { safeDump: toYaml } = require('js-yaml')
+
+const async = require('./async')
+const sync = require('./sync')
 
 module.exports = {
   default: System,
@@ -36,12 +37,12 @@ function System (options = {}, on = {}) {
   })
 
   return {
-    up: series(
+    up: async.series(
       [...stacks, ...networks, ...volumes].map(resource => {
         return cb => resource.up(cb)
       })
     ),
-    down: series(
+    down: async.series(
       [...stacks, ...networks, ...volumes].map(resource => {
         return cb => resource.down(cb)
       })
@@ -51,9 +52,9 @@ function System (options = {}, on = {}) {
 
 function Network (docker, options, on) {
   return {
-    up: waterfall([
-      swallowError(inspectId(options)),
-      iff(isNil, series([create(options), inspect(options)]))
+    up: async.waterfall([
+      async.swallowError(inspectId(options)),
+      async.iff(sync.isNil, async.series([create(options), inspect(options)]))
     ]),
     down: () => {}
   }
@@ -90,7 +91,7 @@ function Network (docker, options, on) {
   }
 
   function inspectId (options) {
-    return waterfall([inspect(options), map(value => value.Id)])
+    return async.waterfall([inspect(options), async.map(value => value.Id)])
   }
 
   function inspect (options) {
@@ -98,50 +99,6 @@ function Network (docker, options, on) {
     return cb => {
       docker.get(`/networks/${name}`, { json: true }, cb)
     }
-  }
-}
-
-function series (continuables) {
-  return cb => runSeries(continuables, cb)
-}
-
-function waterfall (continuables) {
-  return cb => runWaterfall(continuables, cb)
-}
-
-/* eslint-disable handle-callback-err */
-function swallowError (continuable) {
-  return cb => {
-    continuable((err, result) => {
-      cb(null, result)
-    })
-  }
-}
-/* eslint-enable handle-callback-err */
-
-function isNil (value) {
-  return value == null
-}
-
-function map (fn) {
-  return (value, cb) => {
-    try {
-      var result = fn(value)
-    } catch (err) {
-      return cb(err)
-    }
-    cb(null, result)
-  }
-}
-
-function noop (value, cb) {
-  cb(null, value)
-}
-
-function iff (predicate, ifTrue, ifFalse = noop) {
-  return (value, cb) => {
-    if (predicate(value)) ifTrue(value, cb)
-    else ifFalse(value, cb)
   }
 }
 
