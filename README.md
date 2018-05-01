@@ -1,11 +1,13 @@
 # docker-up
 
+_work in progress_
+
 opinionated glue to manage a Docker swarm
 
 built for [ButtCloud](http://buttcloud.org)
 
 ```shell
-npm install --save docker-up
+# npm install --save docker-up
 ```
 
 ## features
@@ -20,7 +22,53 @@ also known as, _what i needed for ButtCloud_:
 
 ## usage
 
-### `dockerUp = require('docker-up')`
+### `{ System } = require('docker-up')`
+
+### `System = require('docker-up').default`
+
+### `system = system(config, on)`
+
+### `system.up((err, info) => {})`
+
+### `system.down((err) => {})`
+
+`config` is object with:
+
+* `docker`: options to `docker-remote-api`
+* `stacks`: array of stack options
+* `networks`: array of networks options
+* `volumes`: array of volume options
+
+where `on` is an object of functions with keys:
+
+* `debug`
+* `info`
+* `warn`
+* `error`
+
+### `{ Stack } = require('docker-up')`
+
+### `stack = Stack(docker, options, on)`
+
+### `stack.up((err, info) => {})`
+
+### `stack.down((err) => {})`
+
+### `{ Network } = require('docker-up')`
+
+### `network = Network(docker, options, on)`
+
+### `network.up((err, info) => {})`
+
+### `network.down((err) => {})`
+
+### `{ Volume } = require('docker-up')`
+
+### `volume = Volume(docker, options, on)`
+
+### `volume.up((err, info) => {})`
+
+### `volume.down((err) => {})`
 
 ## license
 
