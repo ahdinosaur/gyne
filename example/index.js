@@ -2,7 +2,8 @@ const { System } = require('../')
 
 const config = require('./config')
 const on = {
-  event: console.log,
+  debug: console.log,
+  info: console.log,
   warn: console.warn,
   error: console.error
 }

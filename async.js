@@ -7,20 +7,23 @@ module.exports = {
   noop,
   series,
   swallowError,
+  tap,
   waterfall
 }
 
 function iff (predicate, ifTrue, ifFalse = noop) {
-  return (value, cb) => {
-    if (predicate(value)) ifTrue(value, cb)
-    else ifFalse(value, cb)
+  return (...args) => {
+    const cb = args.pop()
+    if (predicate(...args)) ifTrue(...args, cb)
+    else ifFalse(...args, cb)
   }
 }
 
 function map (fn) {
-  return (value, cb) => {
+  return (...args) => {
+    const cb = args.pop()
     try {
-      var result = fn(value)
+      var result = fn(...args)
     } catch (err) {
       return cb(err)
     }
@@ -28,8 +31,9 @@ function map (fn) {
   }
 }
 
-function noop (value, cb) {
-  cb(null, value)
+function noop (...args) {
+  const cb = args.pop()
+  cb(null, ...args)
 }
 
 function series (continuables) {
@@ -45,6 +49,14 @@ function swallowError (continuable) {
   }
 }
 /* eslint-enable handle-callback-err */
+
+function tap (fn) {
+  return (...args) => {
+    const cb = args.pop()
+    fn(...args)
+    cb(null, ...args)
+  }
+}
 
 function waterfall (continuables) {
   return cb => runWaterfall(continuables, cb)

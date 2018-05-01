@@ -1,8 +1,8 @@
 const DockerApi = require('docker-remote-api')
+const { isNil } = require('lodash')
 // const { safeDump: toYaml } = require('js-yaml')
 
 const async = require('./async')
-const sync = require('./sync')
 
 module.exports = {
   default: System,
@@ -53,10 +53,14 @@ function System (options = {}, on = {}) {
 function Network (docker, options, on) {
   return {
     up: async.waterfall([
+      async.tap(() => on.debug('network:up', { options })),
       async.swallowError(inspectId(options)),
-      async.iff(sync.isNil, async.series([create(options), inspect(options)]))
+      async.iff(isNil, async.series([create(options), inspect(options)]))
     ]),
-    down: () => {}
+    down: cb => {
+      on.debug('network:down', { options })
+      cb()
+    }
   }
 
   function create (options) {
@@ -100,25 +104,37 @@ function Network (docker, options, on) {
       docker.get(`/networks/${name}`, { json: true }, cb)
     }
   }
+
+  /*
+  function remove (options) {
+
+  }
+  */
 }
 
 function Stack (docker, options, on) {
   return {
     // use --prune!
     up: cb => {
-      console.log('stack')
+      on.debug('stack:up', { options })
       cb()
     },
-    down: () => {}
+    down: cb => {
+      on.debug('stack:down', { options })
+      cb()
+    }
   }
 }
 
 function Volume (docker, options, on) {
   return {
     up: cb => {
-      console.log('volume')
+      on.debug('volume:up', { options })
       cb()
     },
-    down: () => {}
+    down: cb => {
+      on.debug('volume:down', { options })
+      cb()
+    }
   }
 }
