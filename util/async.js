@@ -5,14 +5,13 @@ const runParallel = require('run-parallel')
 module.exports = {
   error,
   iff,
-  ignoreValues,
-  map,
-  mapAsync,
+  each,
   noop,
   of,
   parallel,
   series,
   swallowError,
+  sync,
   tap,
   waterfall
 }
@@ -23,69 +22,36 @@ function error (err) {
 
 function iff (predicate, ifTrue, ifFalse = noop) {
   return (...args) => {
-    const cb = args.pop()
-    if (predicate(...args)) ifTrue(...args, cb)
-    else ifFalse(...args, cb)
+    if (predicate(...args)) return ifTrue(...args)
+    else return ifFalse(...args)
   }
 }
 
-function ignoreValues (continuable) {
+function each (fn) {
   return (...args) => {
-    const cb = args.pop()
-    continuable(cb)
+    return sync(() => {
+      return fn(...args)
+    })
   }
 }
 
-function map (fn) {
-  return (...args) => {
-    const cb = args.pop()
-    try {
-      var result = fn(...args)
-    } catch (err) {
-      return cb(err)
-    }
-    cb(null, result)
-  }
-}
-
-function mapAsync (fn) {
-  return (...args) => {
-    const cb = args.pop()
-    const continuable = fn(...args)
-    continuable(cb)
-  }
-}
-
-function noop (...args) {
-  const cb = args.pop()
-  cb(null, ...args)
+function noop () {
+  return cb => cb(null, null)
 }
 
 function parallel (continuables) {
-  return (...topArgs) => {
-    const topCb = topArgs.pop()
-    const enhancedContinuables = continuables.map(continuable => {
-      return cb => {
-        continuable(...topArgs, cb)
-      }
-    })
-    runParallel(enhancedContinuables, topCb)
+  return cb => {
+    runParallel(continuables, cb)
   }
 }
 
-function of (value) {
-  return cb => cb(null, value)
+function of (...values) {
+  return cb => cb(null, ...values)
 }
 
 function series (continuables) {
-  return (...topArgs) => {
-    const topCb = topArgs.pop()
-    const enhancedContinuables = continuables.map(continuable => {
-      return cb => {
-        continuable(...topArgs, cb)
-      }
-    })
-    runSeries(enhancedContinuables, topCb)
+  return cb => {
+    runSeries(continuables, cb)
   }
 }
 
@@ -99,23 +65,33 @@ function swallowError (continuable) {
 }
 /* eslint-enable handle-callback-err */
 
-function tap (fn) {
-  return (...args) => {
-    const cb = args.pop()
-    fn(...args)
-    cb(null, ...args)
+function sync (fn) {
+  return cb => {
+    try {
+      var result = fn()
+    } catch (err) {
+      return cb(err)
+    }
+    cb(null, result)
   }
 }
 
-function waterfall (continuables) {
-  return (...topArgs) => {
-    const topCb = topArgs.pop()
-    const enhancedContinuables = continuables.map(continuable => {
+function tap (fn) {
+  return (...values) => {
+    fn(...values)
+    return of(...values)
+  }
+}
+
+function waterfall (steps) {
+  return topCb => {
+    const callbackers = steps.map((step, index) => {
       return (...args) => {
         const cb = args.pop()
-        continuable(...topArgs, ...args, cb)
+        const continuable = index === 0 ? step : step(...args)
+        continuable(cb)
       }
     })
-    runWaterfall(enhancedContinuables, topCb)
+    runWaterfall(callbackers, topCb)
   }
 }

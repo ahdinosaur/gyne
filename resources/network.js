@@ -6,16 +6,17 @@ module.exports = Network
 
 function Network (docker, options, on) {
   return {
-    up: async.waterfall([
-      async.tap(() => on.debug('network:up', { options })),
-      async.swallowError(inspectId(options)),
-      async.iff(
-        isNil,
-        async.ignoreValues(async.series([create(options), inspect(options)]))
-      )
+    up: async.series([
+      async.sync(() => on.debug('network:up', { options })),
+      async.waterfall([
+        async.swallowError(inspectId(options)),
+        async.iff(isNil, () =>
+          async.series([create(options), inspect(options)])
+        )
+      ])
     ]),
-    down: async.waterfall([
-      async.tap(() => on.debug('network:down', { options })),
+    down: async.series([
+      async.sync(() => on.debug('network:down', { options })),
       remove(options)
     ])
   }
@@ -54,7 +55,10 @@ function Network (docker, options, on) {
   }
 
   function inspectId (options) {
-    return async.waterfall([inspect(options), async.map(value => value.Id)])
+    return async.waterfall([
+      inspect(options),
+      value => async.sync(() => value.Id)
+    ])
   }
 
   function inspect (options) {

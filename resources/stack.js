@@ -13,8 +13,8 @@ module.exports = Stack
 function Stack (docker, options, on) {
   return {
     // TODO use deploy --prune!
-    up: async.waterfall([
-      async.tap(() => on.debug('stack:up', { options })),
+    up: async.series([
+      async.sync(() => on.debug('stack:up', { options })),
       deploy(options)
     ]),
     down: cb => {
@@ -48,12 +48,12 @@ function readStack (stack) {
     if (protocol === 'file') {
       return async.waterfall([
         partial(readFile, stackUrl.path),
-        async.map(data => ({ type, data }))
+        data => async.of({ type, data })
       ])
     } else if (protocol === 'http' || protocol === 'https') {
       return async.waterfall([
         partial(httpGet.concat, path),
-        async.map((res, data) => ({ type, data }))
+        (res, data) => async.of({ type, data })
       ])
     }
   }
@@ -68,28 +68,29 @@ function readStack (stack) {
 }
 
 function normalizeStack () {
-  return async.map(({ type, data }) => {
-    switch (type) {
-      case 'json':
-        const object = JSON.parse(data)
-        const nextData = toYaml(object)
-        return { type: 'yml', data: nextData }
-      case 'yml':
-      case 'yaml':
-        return { type, data }
-      default:
-        // this shouldn't happen
-        throw new Error(`unexpected stack type: ${type}`)
-    }
-  })
+  return ({ type, data }) =>
+    async.sync(() => {
+      switch (type) {
+        case 'json':
+          const object = JSON.parse(data)
+          const nextData = toYaml(object)
+          return { type: 'yml', data: nextData }
+        case 'yml':
+        case 'yaml':
+          return { type, data }
+        default:
+          // this shouldn't happen
+          throw new Error(`unexpected stack type: ${type}`)
+      }
+    })
 }
 
 function writeStack () {
-  return async.mapAsync(({ type, data }) => {
+  return ({ type, data }) => {
     const tmpPath = getTmpFilePath({ extension: type })
     return async.waterfall([
       partial(writeFile, tmpPath, data),
-      async.of(tmpPath)
+      () => async.of(tmpPath)
     ])
-  })
+  }
 }
