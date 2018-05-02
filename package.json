@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "manage a swarm of Docker stacks, networks, and volumes",
   "main": "index.js",
+  "bin": "bin.js",
   "scripts": {
     "precommit": "lint-staged",
     "start": "node-dev example",

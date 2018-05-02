@@ -20,7 +20,21 @@ also known as, _what i needed for ButtCloud_:
 * bring one Docker stack up
 * bring one Docker stack down
 
-## usage
+## cli
+
+### up
+
+```shell
+docker-up up ./example/config.json
+```
+
+### down
+
+```shell
+docker-up down ./example/config.json
+```
+
+## api
 
 ### `{ System } = require('docker-up')`
 

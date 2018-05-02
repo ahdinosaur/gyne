@@ -7,6 +7,8 @@ const runParallel = require('run-parallel')
 module.exports = {
   error,
   iff,
+  map,
+  mapAsync,
   noop,
   of,
   parallel,
@@ -14,6 +16,7 @@ module.exports = {
   swallowError,
   sync,
   tap,
+  to,
   waterfall
 }
 
@@ -25,6 +28,26 @@ function iff (predicate, ifTrue, ifFalse = noop) {
   return (...args) => {
     if (predicate(...args)) return ifTrue(...args)
     else return ifFalse(...args)
+  }
+}
+
+// inspired by https://github.com/Raynos/continuable/blob/master/map.js
+function map (source, lambda) {
+  return function continuable (cb) {
+    source(function continuation (err, value) {
+      if (err) cb(err)
+      else sync(() => lambda(value))(cb)
+    })
+  }
+}
+
+// inspired by https://github.com/Raynos/continuable/blob/master/map-async.js
+function mapAsync (source, lambda) {
+  return function continuable (callback) {
+    source(function continuation (err, value) {
+      if (err) callback(err)
+      else lambda(value)(callback)
+    })
   }
 }
 
@@ -73,6 +96,21 @@ function tap (fn) {
   return (...values) => {
     fn(...values)
     return of(...values)
+  }
+}
+
+// inspired by https://github.com/Raynos/continuable/blob/master/to.js
+function to (asyncFn) {
+  return function (...args) {
+    const cb = args[args.length - 1]
+
+    if (typeof cb === 'function') {
+      return asyncFn.apply(this, args)
+    }
+
+    return function continuable (cb) {
+      return asyncFn(...args, cb)
+    }
   }
 }
 
