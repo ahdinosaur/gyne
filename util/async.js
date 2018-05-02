@@ -3,15 +3,22 @@ const runWaterfall = require('run-waterfall')
 const runParallel = require('run-parallel')
 
 module.exports = {
+  error,
   iff,
   ignoreValues,
   map,
+  mapAsync,
   noop,
+  of,
   parallel,
   series,
   swallowError,
   tap,
   waterfall
+}
+
+function error (err) {
+  return cb => cb(err)
 }
 
 function iff (predicate, ifTrue, ifFalse = noop) {
@@ -41,6 +48,14 @@ function map (fn) {
   }
 }
 
+function mapAsync (fn) {
+  return (...args) => {
+    const cb = args.pop()
+    const continuable = fn(...args)
+    continuable(cb)
+  }
+}
+
 function noop (...args) {
   const cb = args.pop()
   cb(null, ...args)
@@ -56,6 +71,10 @@ function parallel (continuables) {
     })
     runParallel(enhancedContinuables, topCb)
   }
+}
+
+function of (value) {
+  return cb => cb(null, value)
 }
 
 function series (continuables) {

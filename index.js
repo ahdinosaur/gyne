@@ -1,10 +1,10 @@
 const DockerApi = require('docker-remote-api')
 const { property } = require('lodash')
-// const { safeDump: toYaml } = require('js-yaml')
 
 const async = require('./util/async')
 const Network = require('./resources/network')
 const Volume = require('./resources/volume')
+const Stack = require('./resources/stack')
 
 module.exports = {
   default: System,
@@ -47,19 +47,5 @@ function System (options = {}, on = {}) {
       async.parallel([...networks, ...volumes].map(property('down'))),
       async.parallel(stacks.map(property('down')))
     ])
-  }
-}
-
-function Stack (docker, options, on) {
-  return {
-    // TODO use deploy --prune!
-    up: cb => {
-      on.debug('stack:up', { options })
-      cb()
-    },
-    down: cb => {
-      on.debug('stack:down', { options })
-      cb()
-    }
   }
 }

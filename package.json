@@ -64,10 +64,11 @@
     "docker-remote-api": "^5.0.0",
     "es2040": "^1.2.3",
     "js-yaml": "^3.11.0",
-    "lei-download": "^1.0.2",
     "lodash": "^4.17.10",
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
-    "run-waterfall": "^1.1.6"
+    "run-waterfall": "^1.1.6",
+    "simple-get": "^3.0.2",
+    "tempy": "^0.2.1"
   }
 }
