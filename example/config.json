@@ -12,6 +12,16 @@
       "name": "test_up_volume"
     }
   ],
+  "services": [
+    {
+      "name": "test_up_service",
+      "taskTemplate": {
+        "containerSpec": {
+          "image": "nginx:alpine"
+        }
+      }
+    }
+  ],
   "stacks": [
     {
       "name": "test_up_stack",

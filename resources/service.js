@@ -1,3 +1,3 @@
 const generic = require('./generic')
 
-module.exports = generic('volume')
+module.exports = generic('service')

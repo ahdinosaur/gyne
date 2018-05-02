@@ -28,9 +28,10 @@ function Stack (docker, options, on) {
 
     return async.waterfall([
       getStack(stack),
-      async.tap(path => {
+      path => cb => {
         console.log('path', path)
-      })
+        cb()
+      }
     ])
   }
 }

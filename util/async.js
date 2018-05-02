@@ -1,3 +1,5 @@
+// TODO publish as `callstep`
+
 const runSeries = require('run-series')
 const runWaterfall = require('run-waterfall')
 const runParallel = require('run-parallel')
@@ -5,7 +7,6 @@ const runParallel = require('run-parallel')
 module.exports = {
   error,
   iff,
-  each,
   noop,
   of,
   parallel,
@@ -24,14 +25,6 @@ function iff (predicate, ifTrue, ifFalse = noop) {
   return (...args) => {
     if (predicate(...args)) return ifTrue(...args)
     else return ifFalse(...args)
-  }
-}
-
-function each (fn) {
-  return (...args) => {
-    return sync(() => {
-      return fn(...args)
-    })
   }
 }
 
