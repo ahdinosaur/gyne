@@ -25,20 +25,26 @@
   "stacks": [
     {
       "name": "test_up_stack",
-      "stack": {
-        "version": "3",
-        "services": {
-          "viz": {
-            "image": "dockersamples/visualizer",
-            "volumes": [
-              "/var/run/docker.sock:/var/run/docker.sock"
-            ],
-            "ports": [
-              "8080:8080"
-            ]
+      "networks": [
+        {
+          "name": "network"
+        }
+      ],
+      "volumes": [
+        {
+          "name": "volume"
+        }
+      ],
+      "services": [
+        {
+          "name": "service",
+          "taskTemplate": {
+            "containerSpec": {
+              "image": "dockersamples/visualizer"
+            }
           }
         }
-      }
+      ]
     }
   ]
 }

@@ -1,4 +1,3 @@
-const DockerApi = require('docker-remote-api')
 const { property } = require('lodash')
 
 const async = require('./util/async')
@@ -6,10 +5,10 @@ const Network = require('./resources/network')
 const Volume = require('./resources/volume')
 const Service = require('./resources/service')
 const Stack = require('./resources/stack')
+const { Context } = require('./defaults')
 
 module.exports = {
   default: System,
-  Docker,
   Network,
   Service,
   Stack,
@@ -17,30 +16,22 @@ module.exports = {
   Volume
 }
 
-function Docker (docker) {
-  if (docker.type === 'docker-remote-api') return docker
-  const options = Object.assign(docker, {
-    version: 'v1.37'
-  })
-  return DockerApi(options)
-}
+function System (config = {}, context = {}) {
+  context = Context(context)
 
-function System (options = {}, on = {}) {
-  const docker = Docker(options.docker)
-
-  var { networks = [], stacks = [], services = [], volumes = [] } = options
+  var { networks = [], stacks = [], services = [], volumes = [] } = config
 
   networks = networks.map(network => {
-    return Network(docker, network, on)
-  })
-  stacks = stacks.map(stack => {
-    return Stack(docker, stack, on)
+    return Network(network, context)
   })
   volumes = volumes.map(volume => {
-    return Volume(docker, volume, on)
+    return Volume(volume, context)
   })
-  services = services.map(stack => {
-    return Service(docker, stack, on)
+  services = services.map(service => {
+    return Service(service, context)
+  })
+  stacks = stacks.map(stack => {
+    return Stack(stack, context)
   })
 
   return {

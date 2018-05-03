@@ -14,11 +14,10 @@ built for [ButtCloud](http://buttcloud.org)
 
 also known as, _what i needed for ButtCloud_:
 
-* able to use remote stack files
+* able to configure fractal stacks
+* able to use remote config files
 * ensure all Docker systems are up
-* bring one Docker volume up
-* bring one Docker stack up
-* bring one Docker stack down
+* ensure one Docker sub-system is up
 
 ## cli
 
@@ -40,7 +39,7 @@ docker-up down ./example/config.json
 
 ### `System = require('docker-up').default`
 
-### `system = system(config, on)`
+### `system = system(config, context)`
 
 ### `system.up((err, info) => {})`
 
@@ -48,29 +47,29 @@ docker-up down ./example/config.json
 
 `config` is object with:
 
-* `docker`: options to `docker-remote-api`
-* `stacks`: array of stack options
 * `networks`: array of networks options
 * `volumes`: array of volume options
+* `stacks`: array of stack options
 
-where `on` is an object of functions with keys:
+where `context` is an optional object with:
 
-* `debug`
-* `info`
-* `warn`
-* `error`
+* `docker`: [`docker-remote-api`](https://github.com/mafintosh/docker-remote-api) options or instance
 
-### `{ Stack } = require('docker-up')`
+- `pretty`: whether to pretty print logs (default: `true`)
+- `logStream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
+- `log`: [`pino`](https://github.com/pinojs/pino) options or instance
 
-### `stack = Stack(docker, options, on)`
+### `{ Service } = require('docker-up')`
 
-### `stack.up((err, info) => {})`
+### `service = Service(config, context)`
 
-### `stack.down((err) => {})`
+### `service.up((err, info) => {})`
+
+### `service.down((err) => {})`
 
 ### `{ Network } = require('docker-up')`
 
-### `network = Network(docker, options, on)`
+### `network = Network(config, context)`
 
 ### `network.up((err, info) => {})`
 
@@ -78,11 +77,19 @@ where `on` is an object of functions with keys:
 
 ### `{ Volume } = require('docker-up')`
 
-### `volume = Volume(docker, options, on)`
+### `volume = Volume(config, context)`
 
 ### `volume.up((err, info) => {})`
 
 ### `volume.down((err) => {})`
+
+### `{ Stack } = require('docker-up')`
+
+### `stack = Stack(config, context)`
+
+### `stack.up((err, info) => {})`
+
+### `stack.down((err) => {})`
 
 ## license
 
