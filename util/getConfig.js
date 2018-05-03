@@ -12,11 +12,7 @@ const fromJson = JSON.parse
 module.exports = getConfig
 
 function getConfig (config) {
-  return async.waterfall([
-    readConfig(config),
-    normalizeConfig(),
-    outputConfig()
-  ])
+  return async.waterfall([readConfig(config), normalizeConfig()])
 }
 
 function readConfig (config) {
@@ -29,12 +25,12 @@ function readConfig (config) {
     if (protocol === 'file') {
       return async.waterfall([
         async.to(readFile)(path),
-        data => async.of({ type, url, data })
+        data => async.of({ type, data })
       ])
     } else if (protocol === 'http' || protocol === 'https') {
       return async.waterfall([
         async.to(httpGet.concat)(href),
-        (res, data) => async.of({ type, url, data })
+        (res, data) => async.of({ type, data })
       ])
     }
   }
@@ -49,29 +45,19 @@ function readConfig (config) {
 }
 
 function normalizeConfig () {
-  return ({ type, url, data }) =>
+  return ({ type, data }) =>
     async.sync(() => {
-      var object
       switch (type) {
         case 'json':
-          object = fromJson(data)
-          return { type: 'object', url, data: object }
+          return fromJson(data)
         case 'yml':
         case 'yaml':
-          object = fromYaml(data)
-          return { type: 'object', url, data: object }
+          return fromYaml(data)
         case 'object':
-          return { type, url, data }
+          return data
         default:
           // this shouldn't happen
           throw new Error(`unexpected config type: ${type}`)
       }
-    })
-}
-
-function outputConfig () {
-  return ({ type, url, data }) =>
-    async.sync(() => {
-      return Object.assign({ url }, data)
     })
 }

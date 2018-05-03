@@ -1,10 +1,11 @@
-const { isNil, mapKeys, partialRight } = require('lodash')
+const { assign, isNil, mapKeys, partialRight } = require('lodash')
 
 const { Context } = require('../defaults')
 const async = require('../util/async')
 const deep = require('../util/deep')
 const pascalCase = require('../util/pascalCase')
 const getConfig = require('../util/getConfig')
+const { prefixName } = require('../util/namespace')
 
 const deepPascalCase = partialRight(deep(mapKeys), (value, key) =>
   pascalCase(key)
@@ -20,7 +21,7 @@ function generic (resource) {
 
     return {
       up: async.series([
-        async.sync(() => log.debug(`${resource}:up`, { config: rawConfig })),
+        async.sync(() => log.debug(`${resource}:up`, { rawConfig })),
         async.waterfall([
           getConfig(rawConfig),
           config =>
@@ -33,18 +34,25 @@ function generic (resource) {
         ])
       ]),
       down: async.series([
-        async.sync(() => log.debug(`${resource}:down`, { config: rawConfig })),
+        async.sync(() => log.debug(`${resource}:down`, { rawConfig })),
         async.waterfall([getConfig(rawConfig), config => remove(config)])
       ])
     }
 
     function create (config) {
-      const { name } = config
+      var { name } = config
+
+      // namespace for nested stacks
+      name = prefixName(context.namespace, name)
+
       return cb => {
         docker.post(
           `/${resource}s/create`,
           {
-            json: deepPascalCase(config)
+            json: deepPascalCase(
+              // namespace name
+              assign({}, config, { name })
+            )
           },
           (err, response) => {
             if (err) {
@@ -77,7 +85,10 @@ function generic (resource) {
     }
 
     function inspect (config) {
-      const { name } = config
+      var { name } = config
+
+      name = prefixName(context.namespace, name)
+
       return cb => {
         docker.get(`/${resource}s/${name}`, { json: true }, (err, response) => {
           if (err) {
@@ -96,7 +107,10 @@ function generic (resource) {
     }
 
     function remove (config) {
-      const { name } = config
+      var { name } = config
+
+      name = prefixName(context.namespace, name)
+
       return cb => {
         docker.delete(`/${resource}s/${name}`, {}, err => {
           if (err) {

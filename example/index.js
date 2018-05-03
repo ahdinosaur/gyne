@@ -1,13 +1,13 @@
-const { System } = require('../')
+const { Stack } = require('../')
 
 const config = require('./config')
 
-const system = System(config)
+const stack = Stack(config)
 
-system.up(err => {
+stack.up(err => {
   if (err) throw err
 
-  system.down(err => {
+  stack.down(err => {
     if (err) throw err
   })
 })

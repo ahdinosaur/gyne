@@ -7,7 +7,7 @@ const { argv, cwd } = process
 // const parseArgs = require('minimist')
 
 const async = require('./util/async')
-const { System } = require('./')
+const { Stack } = require('./')
 
 // const args = parseArgs(process.argv.slice(2))
 const args = argv.slice(2)
@@ -30,20 +30,13 @@ ${script} up ./example/config.json
 const readConfigFile = async.to(readFile)(file)
 const readConfig = async.map(readConfigFile, JSON.parse)
 
-const on = {
-  debug: console.log,
-  info: console.log,
-  warn: console.warn,
-  error: console.error
-}
-
 async.waterfall([
   readConfig,
   config =>
     async.sync(() => {
-      return System(config, on)
+      return Stack(config)
     }),
-  system => system[command]
+  stack => stack[command]
 ])(err => {
   if (err) throw err
 })

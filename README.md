@@ -37,18 +37,20 @@ docker-up down ./example/config.json
 
 ### `{ System } = require('docker-up')`
 
-### `System = require('docker-up').default`
+### `Stack = require('docker-up').default`
 
-### `system = system(config, context)`
+### `stack = system(config, context)`
 
-### `system.up((err, info) => {})`
+### `stack.up((err, info) => {})`
 
-### `system.down((err) => {})`
+### `stack.down((err) => {})`
 
 `config` is object with:
 
+* `name`: namespace for networks, volumes, services, or nested stacks
 * `networks`: array of networks options
 * `volumes`: array of volume options
+* `services`: array of service options
 * `stacks`: array of stack options
 
 where `context` is an optional object with:
@@ -82,14 +84,6 @@ where `context` is an optional object with:
 ### `volume.up((err, info) => {})`
 
 ### `volume.down((err) => {})`
-
-### `{ Stack } = require('docker-up')`
-
-### `stack = Stack(config, context)`
-
-### `stack.up((err, info) => {})`
-
-### `stack.down((err) => {})`
 
 ## license
 

@@ -8,7 +8,7 @@ const env = process.env.NODE_ENV
 const isProduction = env === 'production'
 
 function Context (context) {
-  var { pretty = true, log, logStream, docker } = context
+  var { docker, log, logStream, pretty = true } = context
 
   if (isNil(log) || isNil(log.pino)) {
     const logOptions = defaults(log, {
@@ -22,12 +22,12 @@ function Context (context) {
 
   docker = Docker(docker)
 
-  return {
+  return Object.assign({}, context, {
     pretty,
     log,
     logStream,
     docker
-  }
+  })
 }
 
 const DEFAULT_DOCKER_VERSION = 'v1.37'
