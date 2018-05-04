@@ -1,6 +1,6 @@
 const { assign, isEmpty, isNil } = require('lodash')
 
-const { Context } = require('../defaults')
+const { Context, DOCKER_API_VERSION } = require('../defaults')
 const async = require('../util/async')
 const getConfig = require('../util/getConfig')
 const { prefixName } = require('../util/namespace')
@@ -58,7 +58,8 @@ function generic (resourceName) {
                   },
                   config.Labels
                 )
-            })
+            }),
+            version: DOCKER_API_VERSION
           },
           (err, response) => {
             if (err) {
@@ -98,7 +99,10 @@ function generic (resourceName) {
       return cb => {
         docker.get(
           `/${resourceName}s/${name}`,
-          { json: true },
+          {
+            json: true,
+            version: DOCKER_API_VERSION
+          },
           (err, response) => {
             if (err) {
               log.error(`Error inspecting ${resourceName}: ${name}`, err)
@@ -122,19 +126,25 @@ function generic (resourceName) {
       name = prefixName(context.namespace, name)
 
       return cb => {
-        docker.delete(`/${resourceName}s/${name}`, {}, err => {
-          if (err) {
-            log.error(err, `Error removing ${resourceName}: ${name}`)
-            cb(err)
-            return
+        docker.delete(
+          `/${resourceName}s/${name}`,
+          {
+            version: DOCKER_API_VERSION
+          },
+          err => {
+            if (err) {
+              log.error(err, `Error removing ${resourceName}: ${name}`)
+              cb(err)
+              return
+            }
+            log.info({
+              action: `${resourceName}:remove`,
+              config,
+              message: `${resourceName} removed: ${name}`
+            })
+            cb()
           }
-          log.info({
-            action: `${resourceName}:remove`,
-            config,
-            message: `${resourceName} removed: ${name}`
-          })
-          cb()
-        })
+        )
       }
     }
   }
