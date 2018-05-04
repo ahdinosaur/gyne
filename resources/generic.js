@@ -1,4 +1,4 @@
-const { assign, isNil } = require('lodash')
+const { assign, isEmpty, isNil } = require('lodash')
 
 const { Context } = require('../defaults')
 const async = require('../util/async')
@@ -48,7 +48,17 @@ function generic (resourceName) {
           `/${resourceName}s/create`,
           {
             // namespace name
-            json: assign({}, config, { Name: name })
+            json: assign({}, config, {
+              Name: name,
+              Labels: isEmpty(context.namespace)
+                ? config.Labels
+                : assign(
+                  {
+                    'com.docker.stack.namespace': context.namespace.join('__')
+                  },
+                  config.Labels
+                )
+            })
           },
           (err, response) => {
             if (err) {
