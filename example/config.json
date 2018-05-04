@@ -1,46 +1,43 @@
 {
-  "docker": {
-    "host": "/var/run/docker.sock"
-  },
-  "networks": [
+  "Networks": [
     {
-      "name": "test_up_network"
+      "Name": "test_up_network"
     }
   ],
-  "volumes": [
+  "Volumes": [
     {
-      "name": "test_up_volume"
+      "Name": "test_up_volume"
     }
   ],
-  "services": [
+  "Services": [
     {
-      "name": "test_up_service",
-      "taskTemplate": {
-        "containerSpec": {
-          "image": "nginx:alpine"
+      "Name": "test_up_service",
+      "TaskTemplate": {
+        "ContainerSpec": {
+          "Image": "nginx:alpine"
         }
       }
     }
   ],
-  "stacks": [
+  "Stacks": [
     {
-      "name": "test_up_stack",
-      "networks": [
+      "Name": "test_up_stack",
+      "Networks": [
         {
-          "name": "network"
+          "Name": "network"
         }
       ],
-      "volumes": [
+      "Volumes": [
         {
-          "name": "volume"
+          "Name": "volume"
         }
       ],
-      "services": [
+      "Services": [
         {
-          "name": "service",
-          "taskTemplate": {
-            "containerSpec": {
-              "image": "dockersamples/visualizer"
+          "Name": "service",
+          "TaskTemplate": {
+            "ContainerSpec": {
+              "Image": "dockersamples/visualizer"
             }
           }
         }

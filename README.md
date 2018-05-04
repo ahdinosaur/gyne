@@ -12,7 +12,7 @@ built for [ButtCloud](http://buttcloud.org)
 
 ## features
 
-also known as, _what i needed for ButtCloud_:
+also known as, _what we need for ButtCloud_:
 
 * able to configure fractal stacks
 * able to use remote config files
@@ -24,13 +24,13 @@ also known as, _what i needed for ButtCloud_:
 ### up
 
 ```shell
-docker-up up ./example/config.json
+docker-up stack up ./example/config.json
 ```
 
 ### down
 
 ```shell
-docker-up down ./example/config.json
+docker-up stack down ./example/config.json
 ```
 
 ## api
@@ -41,25 +41,26 @@ docker-up down ./example/config.json
 
 ### `stack = system(context)`
 
+where `context` is an optional object with:
+
+* `docker`: [`docker-remote-api`](https://github.com/mafintosh/docker-remote-api) options or instance
+
+- `debug`: whether to include debug in logs (default: `false`)
+- `pretty`: whether to pretty print logs (default: `false`)
+- `logStream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
+- `log`: [`pino`](https://github.com/pinojs/pino) options or instance
+
 ### `stack.up(config)((err, info) => {})`
 
 ### `stack.down(config)((err) => {})`
 
 `config` is object with:
 
-* `name`: namespace for networks, volumes, services, or nested stacks
-* `networks`: array of networks options
-* `volumes`: array of volume options
-* `services`: array of service options
-* `stacks`: array of stack options
-
-where `context` is an optional object with:
-
-* `docker`: [`docker-remote-api`](https://github.com/mafintosh/docker-remote-api) options or instance
-
-- `pretty`: whether to pretty print logs (default: `true`)
-- `logStream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
-- `log`: [`pino`](https://github.com/pinojs/pino) options or instance
+* `Name`: (optional) namespace for networks, volumes, services, or nested stacks
+* `Networks`: array of networks options
+* `Volumes`: array of volume options
+* `Services`: array of service options
+* `Stacks`: array of stack options
 
 ### `{ Service } = require('docker-up')`
 
@@ -69,6 +70,8 @@ where `context` is an optional object with:
 
 ### `service.down(config)(err) => {})`
 
+`config` matches [Docker API Service config](https://docs.docker.com/engine/api/v1.37/#operation/ServiceCreate)
+
 ### `{ Network } = require('docker-up')`
 
 ### `network = Network(context)`
@@ -77,6 +80,8 @@ where `context` is an optional object with:
 
 ### `network.down(config)(err) => {})`
 
+`config` matches [Docker API Network config](https://docs.docker.com/engine/api/v1.37/#operation/NetworkCreate)
+
 ### `{ Volume } = require('docker-up')`
 
 ### `volume = Volume(context)`
@@ -84,6 +89,8 @@ where `context` is an optional object with:
 ### `volume.up(config)(err, info) => {})`
 
 ### `volume.down(config)(err) => {})`
+
+`config` matches [Docker API Volume config](https://docs.docker.com/engine/api/v1.37/#operation/VolumeCreate)
 
 ## license
 

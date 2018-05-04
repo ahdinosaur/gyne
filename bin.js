@@ -8,7 +8,9 @@ const ansi = require('ansi-escape-sequences')
 const { Network, Service, Stack, Volume } = require('./')
 
 const { argv, cwd } = process
-const script = isAbsolute(argv[1]) ? relative(cwd(), argv[1]) : argv[1]
+const script = isAbsolute(argv[1])
+  ? `node ./${relative(cwd(), argv[1])}`
+  : argv[1]
 
 const resources = {
   network: Network,

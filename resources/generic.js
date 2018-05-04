@@ -1,15 +1,9 @@
-const { assign, isNil, mapKeys, partialRight } = require('lodash')
+const { assign, isNil } = require('lodash')
 
 const { Context } = require('../defaults')
 const async = require('../util/async')
-const deep = require('../util/deep')
-const pascalCase = require('../util/pascalCase')
 const getConfig = require('../util/getConfig')
 const { prefixName } = require('../util/namespace')
-
-const deepPascalCase = partialRight(deep(mapKeys), (value, key) =>
-  pascalCase(key)
-)
 
 module.exports = generic
 
@@ -44,7 +38,7 @@ function generic (resourceName) {
     }
 
     function create (config) {
-      var { name } = config
+      var { Name: name } = config
 
       // namespace for nested stacks
       name = prefixName(context.namespace, name)
@@ -53,10 +47,8 @@ function generic (resourceName) {
         docker.post(
           `/${resourceName}s/create`,
           {
-            json: deepPascalCase(
-              // namespace name
-              assign({}, config, { name })
-            )
+            // namespace name
+            json: assign({}, config, { Name: name })
           },
           (err, response) => {
             if (err) {
@@ -89,7 +81,7 @@ function generic (resourceName) {
     }
 
     function inspect (config) {
-      var { name } = config
+      var { Name: name } = config
 
       name = prefixName(context.namespace, name)
 
@@ -115,7 +107,7 @@ function generic (resourceName) {
     }
 
     function remove (config) {
-      var { name } = config
+      var { Name: name } = config
 
       name = prefixName(context.namespace, name)
 

@@ -59,13 +59,18 @@ function Stack (context = {}) {
 }
 
 function targetChildResources (context, config = {}, command) {
-  const { name } = config
+  const { Name: name } = config
 
   if (isNil(context.namespace)) {
     context.namespace = name ? [name] : []
   }
 
-  var { networks = [], stacks = [], services = [], volumes = [] } = config
+  var {
+    Networks: networks = [],
+    Stacks: stacks = [],
+    Services: services = [],
+    Volumes: volumes = []
+  } = config
 
   networks = networks.map(network => {
     return Network(context)[command](network)
@@ -78,7 +83,7 @@ function targetChildResources (context, config = {}, command) {
   })
 
   stacks = stacks.map(stack => {
-    const { name } = stack
+    const { Name: name } = stack
     const namespace = [...context.namespace, name]
     const nextContext = assign({}, context, { namespace })
     return Stack(nextContext)[command](stack)
