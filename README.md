@@ -39,11 +39,11 @@ docker-up down ./example/config.json
 
 ### `Stack = require('docker-up').default`
 
-### `stack = system(config, context)`
+### `stack = system(context)`
 
-### `stack.up((err, info) => {})`
+### `stack.up(config)((err, info) => {})`
 
-### `stack.down((err) => {})`
+### `stack.down(config)((err) => {})`
 
 `config` is object with:
 
@@ -63,27 +63,27 @@ where `context` is an optional object with:
 
 ### `{ Service } = require('docker-up')`
 
-### `service = Service(config, context)`
+### `service = Service(context)`
 
-### `service.up((err, info) => {})`
+### `service.up(config)(err, info) => {})`
 
-### `service.down((err) => {})`
+### `service.down(config)(err) => {})`
 
 ### `{ Network } = require('docker-up')`
 
-### `network = Network(config, context)`
+### `network = Network(context)`
 
-### `network.up((err, info) => {})`
+### `network.up(config)(err, info) => {})`
 
-### `network.down((err) => {})`
+### `network.down(config)(err) => {})`
 
 ### `{ Volume } = require('docker-up')`
 
-### `volume = Volume(config, context)`
+### `volume = Volume(context)`
 
-### `volume.up((err, info) => {})`
+### `volume.up(config)(err, info) => {})`
 
-### `volume.down((err) => {})`
+### `volume.down(config)(err) => {})`
 
 ## license
 

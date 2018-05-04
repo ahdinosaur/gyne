@@ -1,13 +1,17 @@
+const { join } = require('path')
+
 const { Stack } = require('../')
 
-const config = require('./config')
+const config = join(__dirname, './config.json')
+const stack = Stack({
+  pretty: true,
+  debug: true
+})
 
-const stack = Stack(config)
-
-stack.up(err => {
+stack.up(config)(err => {
   if (err) throw err
 
-  stack.down(err => {
+  stack.down(config)(err => {
     if (err) throw err
   })
 })

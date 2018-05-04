@@ -4,15 +4,12 @@ const Log = require('pino')
 const prettyLogs = require('pino-colada')
 const pumpify = require('pumpify')
 
-const env = process.env.NODE_ENV
-const isProduction = env === 'production'
-
 function Context (context) {
-  var { docker, log, logStream, pretty = true } = context
+  var { debug = false, docker, log, logStream, pretty = false } = context
 
   if (isNil(log) || isNil(log.pino)) {
     const logOptions = defaults(log, {
-      level: !isProduction ? 'debug' : 'info'
+      level: debug ? 'debug' : 'info'
     })
     logStream = isNil(logStream)
       ? pretty ? pumpify(prettyLogs(), process.stdout) : process.stdout
@@ -23,7 +20,6 @@ function Context (context) {
   docker = Docker(docker)
 
   return Object.assign({}, context, {
-    pretty,
     log,
     logStream,
     docker

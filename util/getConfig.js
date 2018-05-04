@@ -1,5 +1,5 @@
 const { readFile } = require('fs')
-const { isObject, isString } = require('lodash')
+const { isNil, isObject, isString } = require('lodash')
 const { parse: parseUrl } = require('url')
 const { extname } = require('path')
 const httpGet = require('simple-get')
@@ -22,7 +22,7 @@ function readConfig (config) {
     const { href, protocol, path } = urlObject
     const type = extname(path).substring(1)
 
-    if (protocol === 'file') {
+    if (isNil(protocol) || protocol === 'file') {
       return async.waterfall([
         async.to(readFile)(path),
         data => async.of({ type, data })

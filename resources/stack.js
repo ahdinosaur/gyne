@@ -1,17 +1,65 @@
-const { assign, isNil, property } = require('lodash')
+const { assign, isNil } = require('lodash')
 
 const async = require('../util/async')
 const Network = require('./network')
 const Volume = require('./volume')
 const Service = require('./service')
 const { Context } = require('../defaults')
+const getConfig = require('../util/getConfig')
 
 module.exports = Stack
 
-function Stack (config = {}, context = {}) {
-  const { name } = config
-
+function Stack (context = {}) {
   context = Context(context)
+
+  const { log } = context
+
+  return {
+    up (rawConfig) {
+      return async.series([
+        async.sync(() => log.debug(`stack:up`, { rawConfig })),
+        async.waterfall([
+          getConfig(rawConfig),
+          config => {
+            const {
+              networks,
+              stacks,
+              services,
+              volumes
+            } = targetChildResources(context, config, 'up')
+            return async.series([
+              async.parallel([...networks, ...volumes]),
+              async.parallel([...services, ...stacks])
+            ])
+          }
+        ])
+      ])
+    },
+    down (rawConfig) {
+      return async.series([
+        async.sync(() => log.debug(`stack:down`, { rawConfig })),
+        async.waterfall([
+          getConfig(rawConfig),
+          config => {
+            const {
+              networks,
+              stacks,
+              services,
+              volumes
+            } = targetChildResources(context, config, 'down')
+            return async.series([
+              async.parallel([...networks, ...volumes]),
+              async.parallel([...services, ...stacks])
+            ])
+          }
+        ])
+      ])
+    }
+  }
+}
+
+function targetChildResources (context, config = {}, command) {
+  const { name } = config
 
   if (isNil(context.namespace)) {
     context.namespace = name ? [name] : []
@@ -20,29 +68,26 @@ function Stack (config = {}, context = {}) {
   var { networks = [], stacks = [], services = [], volumes = [] } = config
 
   networks = networks.map(network => {
-    return Network(network, context)
+    return Network(context)[command](network)
   })
   volumes = volumes.map(volume => {
-    return Volume(volume, context)
+    return Volume(context)[command](volume)
   })
   services = services.map(service => {
-    return Service(service, context)
+    return Service(context)[command](service)
   })
+
   stacks = stacks.map(stack => {
     const { name } = stack
     const namespace = [...context.namespace, name]
     const nextContext = assign({}, context, { namespace })
-    return Stack(stack, nextContext)
+    return Stack(nextContext)[command](stack)
   })
 
   return {
-    up: async.series([
-      async.parallel([...networks, ...volumes].map(property('up'))),
-      async.parallel([...services, ...stacks].map(property('up')))
-    ]),
-    down: async.series([
-      async.parallel([...services, ...stacks].map(property('down'))),
-      async.parallel([...networks, ...volumes].map(property('down')))
-    ])
+    networks,
+    stacks,
+    services,
+    volumes
   }
 }

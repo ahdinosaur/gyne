@@ -13,30 +13,34 @@ const deepPascalCase = partialRight(deep(mapKeys), (value, key) =>
 
 module.exports = generic
 
-function generic (resource) {
-  return function (rawConfig, context = {}) {
+function generic (resourceName) {
+  return function Resource (context = {}) {
     context = Context(context)
 
     const { docker, log } = context
 
     return {
-      up: async.series([
-        async.sync(() => log.debug(`${resource}:up`, { rawConfig })),
-        async.waterfall([
-          getConfig(rawConfig),
-          config =>
-            async.waterfall([
-              async.swallowError(inspectId(config)),
-              async.iff(isNil, () =>
-                async.series([create(config), inspect(config)])
-              )
-            ])
+      up (rawConfig) {
+        return async.series([
+          async.sync(() => log.debug(`${resourceName}:up`, { rawConfig })),
+          async.waterfall([
+            getConfig(rawConfig),
+            config =>
+              async.waterfall([
+                async.swallowError(inspectId(config)),
+                async.iff(isNil, () =>
+                  async.series([create(config), inspect(config)])
+                )
+              ])
+          ])
         ])
-      ]),
-      down: async.series([
-        async.sync(() => log.debug(`${resource}:down`, { rawConfig })),
-        async.waterfall([getConfig(rawConfig), config => remove(config)])
-      ])
+      },
+      down (rawConfig) {
+        return async.series([
+          async.sync(() => log.debug(`${resourceName}:down`, { rawConfig })),
+          async.waterfall([getConfig(rawConfig), config => remove(config)])
+        ])
+      }
     }
 
     function create (config) {
@@ -47,7 +51,7 @@ function generic (resource) {
 
       return cb => {
         docker.post(
-          `/${resource}s/create`,
+          `/${resourceName}s/create`,
           {
             json: deepPascalCase(
               // namespace name
@@ -56,18 +60,18 @@ function generic (resource) {
           },
           (err, response) => {
             if (err) {
-              log.error(`Error creating ${resource}: ${name}`, err)
+              log.error(`Error creating ${resourceName}: ${name}`, err)
               cb(err)
               return
             }
             if (response.warning) {
               log.warn(response.Warning, {
-                action: `${resource}:create`,
+                action: `${resourceName}:create`,
                 config
               })
             }
-            log.info(`${resource} created: ${name}`, {
-              action: `${resource}:create`,
+            log.info(`${resourceName} created: ${name}`, {
+              action: `${resourceName}:create`,
               config,
               response
             })
@@ -90,19 +94,23 @@ function generic (resource) {
       name = prefixName(context.namespace, name)
 
       return cb => {
-        docker.get(`/${resource}s/${name}`, { json: true }, (err, response) => {
-          if (err) {
-            log.error(`Error inspecting ${resource}: ${name}`, err)
-            cb(err)
-            return
+        docker.get(
+          `/${resourceName}s/${name}`,
+          { json: true },
+          (err, response) => {
+            if (err) {
+              log.error(`Error inspecting ${resourceName}: ${name}`, err)
+              cb(err)
+              return
+            }
+            log.info(`${resourceName} inspected: ${name}`, {
+              action: `${resourceName}:inspect`,
+              config,
+              response
+            })
+            cb(null, response)
           }
-          log.info(`${resource} inspected: ${name}`, {
-            action: `${resource}:inspect`,
-            config,
-            response
-          })
-          cb(null, response)
-        })
+        )
       }
     }
 
@@ -112,16 +120,16 @@ function generic (resource) {
       name = prefixName(context.namespace, name)
 
       return cb => {
-        docker.delete(`/${resource}s/${name}`, {}, err => {
+        docker.delete(`/${resourceName}s/${name}`, {}, err => {
           if (err) {
-            log.error(err, `Error removing ${resource}: ${name}`)
+            log.error(err, `Error removing ${resourceName}: ${name}`)
             cb(err)
             return
           }
           log.info({
-            action: `${resource}:remove`,
+            action: `${resourceName}:remove`,
             config,
-            message: `${resource} removed: ${name}`
+            message: `${resourceName} removed: ${name}`
           })
           cb()
         })
