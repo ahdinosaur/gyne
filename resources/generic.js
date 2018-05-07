@@ -1,7 +1,7 @@
 const { assign, isEmpty, isNil } = require('lodash')
+const step = require('callstep')
 
 const { Context, DOCKER_API_VERSION } = require('../defaults')
-const async = require('../util/async')
 const getConfig = require('../util/getConfig')
 const { prefixName } = require('../util/namespace')
 
@@ -15,24 +15,24 @@ function generic (resourceName) {
 
     return {
       up (rawConfig) {
-        return async.series([
-          async.sync(() => log.debug(`${resourceName}:up`, { rawConfig })),
-          async.waterfall([
+        return step.series([
+          step.sync(() => log.debug(`${resourceName}:up`, { rawConfig })),
+          step.waterfall([
             getConfig(rawConfig),
             config =>
-              async.waterfall([
-                async.swallowError(inspectId(config)),
-                async.iff(isNil, () =>
-                  async.series([create(config), inspect(config)])
+              step.waterfall([
+                step.swallowError(inspectId(config)),
+                step.iff(isNil, () =>
+                  step.series([create(config), inspect(config)])
                 )
               ])
           ])
         ])
       },
       down (rawConfig) {
-        return async.series([
-          async.sync(() => log.debug(`${resourceName}:down`, { rawConfig })),
-          async.waterfall([getConfig(rawConfig), config => remove(config)])
+        return step.series([
+          step.sync(() => log.debug(`${resourceName}:down`, { rawConfig })),
+          step.waterfall([getConfig(rawConfig), config => remove(config)])
         ])
       }
     }
@@ -85,9 +85,9 @@ function generic (resourceName) {
     }
 
     function inspectId (config) {
-      return async.waterfall([
+      return step.waterfall([
         inspect(config),
-        value => async.sync(() => value.Id)
+        value => step.sync(() => value.Id)
       ])
     }
 

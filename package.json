@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "ansi-escape-sequences": "^4.0.0",
+    "callstep": "^1.0.0",
     "docker-remote-api": "^5.0.0",
     "es2040": "^1.2.3",
     "js-yaml": "^3.11.0",

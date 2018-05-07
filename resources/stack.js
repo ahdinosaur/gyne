@@ -1,6 +1,6 @@
 const { assign, isNil } = require('lodash')
+const step = require('callstep')
 
-const async = require('../util/async')
 const Network = require('./network')
 const Volume = require('./volume')
 const Service = require('./service')
@@ -16,29 +16,30 @@ function Stack (context = {}) {
 
   return {
     up (rawConfig) {
-      return async.series([
-        async.sync(() => log.debug(`stack:up`, { rawConfig })),
-        async.waterfall([
+      return step.series([
+        step.sync(() => log.debug(`stack:up`, { rawConfig })),
+        step.waterfall([
           getConfig(rawConfig),
           config => {
+            console.log('config', config)
             const {
               networks,
               stacks,
               services,
               volumes
             } = targetChildResources(context, config, 'up')
-            return async.series([
-              async.parallel([...networks, ...volumes]),
-              async.parallel([...services, ...stacks])
+            return step.series([
+              step.parallel([...networks, ...volumes]),
+              step.parallel([...services, ...stacks])
             ])
           }
         ])
       ])
     },
     down (rawConfig) {
-      return async.series([
-        async.sync(() => log.debug(`stack:down`, { rawConfig })),
-        async.waterfall([
+      return step.series([
+        step.sync(() => log.debug(`stack:down`, { rawConfig })),
+        step.waterfall([
           getConfig(rawConfig),
           config => {
             const {
@@ -47,9 +48,9 @@ function Stack (context = {}) {
               services,
               volumes
             } = targetChildResources(context, config, 'down')
-            return async.series([
-              async.parallel([...networks, ...volumes]),
-              async.parallel([...services, ...stacks])
+            return step.series([
+              step.parallel([...networks, ...volumes]),
+              step.parallel([...services, ...stacks])
             ])
           }
         ])
