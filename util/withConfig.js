@@ -6,6 +6,8 @@ const httpGet = require('simple-get')
 const { safeLoad: fromYaml } = require('js-yaml')
 const step = require('callstep')
 
+const withLogs = require('./withLogs')
+
 const fromJson = JSON.parse
 const fetchUrl = url => callback => {
   httpGet.concat(url, (err, res, data) => {
@@ -14,7 +16,15 @@ const fetchUrl = url => callback => {
   })
 }
 
-module.exports = getConfig
+module.exports = withConfig
+
+function withConfig ({ log }) {
+  const wrap = withLogs({ log, method: 'util:getConfig' })
+  return callstep => {
+    return rawConfig =>
+      step.waterfall([step.of(rawConfig), wrap(getConfig), callstep])
+  }
+}
 
 function getConfig (config) {
   return step.waterfall([readConfig(config), normalizeConfig()])

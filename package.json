@@ -12,7 +12,7 @@
     "style": "npm-run-all -s style:format style:lint",
     "test:deps": "dependency-check . && dependency-check . --extra --no-dev -i es2040",
     "test:lint": "standard",
-    "test:node": "NODE_ENV=test run-default tape test/*.js --",
+    "test:node": "NODE_ENV=test ava",
     "test:coverage": "NODE_ENV=test nyc npm run test:node",
     "test:coverage:report": "nyc report --reporter=lcov npm run test:node",
     "test": "npm-run-all -s test:node test:lint test:deps"
@@ -50,6 +50,7 @@
   },
   "homepage": "https://github.com/ahdinosaur/docker-up#readme",
   "devDependencies": {
+    "ava": "^0.25.0",
     "dependency-check": "^2.7.0",
     "husky": "^0.14.3",
     "lint-staged": "^7.0.5",
@@ -57,9 +58,7 @@
     "npm-run-all": "^4.0.1",
     "nyc": "^10.1.2",
     "prettier-standard": "^8.0.1",
-    "run-default": "^1.0.0",
-    "standard": "^11.0.1",
-    "tape": "^4.6.3"
+    "standard": "^11.0.1"
   },
   "dependencies": {
     "ansi-escape-sequences": "^4.0.0",
@@ -75,7 +74,6 @@
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
     "run-waterfall": "^1.1.6",
-    "simple-get": "^3.0.2",
-    "tempy": "^0.2.1"
+    "simple-get": "^3.0.2"
   }
 }

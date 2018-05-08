@@ -2,8 +2,8 @@ const { assign, isEmpty, isNil } = require('lodash')
 const step = require('callstep')
 
 const { Context, DOCKER_API_VERSION } = require('../defaults')
-const getConfig = require('../util/getConfig')
 const { prefixName } = require('../util/namespace')
+const wrapMethod = require('../util/wrapMethod')
 
 module.exports = generic
 
@@ -14,27 +14,21 @@ function generic (resourceName) {
     const { docker, log } = context
 
     return {
-      up (rawConfig) {
-        return step.series([
-          step.sync(() => log.debug(`${resourceName}:up`, { rawConfig })),
-          step.waterfall([
-            getConfig(rawConfig),
-            config =>
-              step.waterfall([
-                step.swallowError(inspectId(config)),
-                step.iff(isNil, () =>
-                  step.series([create(config), inspect(config)])
-                )
-              ])
-          ])
-        ])
-      },
-      down (rawConfig) {
-        return step.series([
-          step.sync(() => log.debug(`${resourceName}:down`, { rawConfig })),
-          step.waterfall([getConfig(rawConfig), config => remove(config)])
-        ])
-      }
+      up: wrapMethod({ log, method: `${resourceName}:up` })(up),
+      down: wrapMethod({ log, method: `${resourceName}:down` })(down),
+      create: wrapMethod({ log, method: `${resourceName}:create` })(create),
+      remove: wrapMethod({ log, method: `${resourceName}:remove` })(remove)
+    }
+
+    function up (config) {
+      return step.waterfall([
+        step.swallowError(inspectId(config)),
+        step.iff(isNil, () => step.series([create(config), inspect(config)]))
+      ])
+    }
+
+    function down (config) {
+      return remove(config)
     }
 
     function create (config) {
@@ -44,21 +38,23 @@ function generic (resourceName) {
       name = prefixName(context.namespace, name)
 
       return cb => {
+        var json = assign({}, config, { Name: name })
+
+        // if in namespace
+        if (!isEmpty(context.namespace)) {
+          // add stack label
+          json.Labels = assign(
+            {
+              'com.docker.stack.namespace': context.namespace.join('__')
+            },
+            json.Labels
+          )
+        }
+
         docker.post(
           `/${resourceName}s/create`,
           {
-            // namespace name
-            json: assign({}, config, {
-              Name: name,
-              Labels: isEmpty(context.namespace)
-                ? config.Labels
-                : assign(
-                  {
-                    'com.docker.stack.namespace': context.namespace.join('__')
-                  },
-                  config.Labels
-                )
-            }),
+            json,
             version: DOCKER_API_VERSION
           },
           (err, response) => {

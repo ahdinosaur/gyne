@@ -5,7 +5,7 @@ const Network = require('./network')
 const Volume = require('./volume')
 const Service = require('./service')
 const { Context } = require('../defaults')
-const getConfig = require('../util/getConfig')
+const wrapMethod = require('../util/wrapMethod')
 
 module.exports = Stack
 
@@ -15,47 +15,32 @@ function Stack (context = {}) {
   const { log } = context
 
   return {
-    up (rawConfig) {
-      return step.series([
-        step.sync(() => log.debug(`stack:up`, { rawConfig })),
-        step.waterfall([
-          getConfig(rawConfig),
-          config => {
-            console.log('config', config)
-            const {
-              networks,
-              stacks,
-              services,
-              volumes
-            } = targetChildResources(context, config, 'up')
-            return step.series([
-              step.parallel([...networks, ...volumes]),
-              step.parallel([...services, ...stacks])
-            ])
-          }
-        ])
-      ])
-    },
-    down (rawConfig) {
-      return step.series([
-        step.sync(() => log.debug(`stack:down`, { rawConfig })),
-        step.waterfall([
-          getConfig(rawConfig),
-          config => {
-            const {
-              networks,
-              stacks,
-              services,
-              volumes
-            } = targetChildResources(context, config, 'down')
-            return step.series([
-              step.parallel([...networks, ...volumes]),
-              step.parallel([...services, ...stacks])
-            ])
-          }
-        ])
-      ])
-    }
+    up: wrapMethod({ log, method: `stack:up` })(up),
+    down: wrapMethod({ log, method: `stack:down` })(down)
+  }
+
+  function up (config) {
+    const { networks, stacks, services, volumes } = targetChildResources(
+      context,
+      config,
+      'up'
+    )
+    return step.series([
+      step.parallel([...networks, ...volumes]),
+      step.parallel([...services, ...stacks])
+    ])
+  }
+
+  function down (config) {
+    const { networks, stacks, services, volumes } = targetChildResources(
+      context,
+      config,
+      'down'
+    )
+    return step.series([
+      step.parallel([...networks, ...volumes]),
+      step.parallel([...services, ...stacks])
+    ])
   }
 }
 
