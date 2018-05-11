@@ -10,17 +10,12 @@
     "style:lint": "standard",
     "style:format": "prettier-standard '**/*.js' '**/*.md'",
     "style": "npm-run-all -s style:format style:lint",
-    "test:deps": "dependency-check . && dependency-check . --extra --no-dev -i es2040",
+    "test:deps": "dependency-check . && dependency-check . --extra --no-dev",
     "test:lint": "standard",
     "test:node": "NODE_ENV=test ava",
     "test:coverage": "NODE_ENV=test nyc npm run test:node",
     "test:coverage:report": "nyc report --reporter=lcov npm run test:node",
     "test": "npm-run-all -s test:node test:lint test:deps"
-  },
-  "browserify": {
-    "transform": [
-      "es2040"
-    ]
   },
   "lint-staged": {
     "linters": {
@@ -64,7 +59,6 @@
     "ansi-escape-sequences": "^4.0.0",
     "callstep": "^1.0.0",
     "docker-remote-api": "^5.0.0",
-    "es2040": "^1.2.3",
     "js-yaml": "^3.11.0",
     "lodash": "^4.17.10",
     "minimist": "^1.2.0",
