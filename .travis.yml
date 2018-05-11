@@ -1,4 +1,7 @@
 language: node_js
+sudo: required
+services:
+  - docker
 script: "npm run test:coverage && npm run test:coverage:report"
 after_script: "npm i -g codecov.io && cat ./coverage/lcov.info | codecov"
 notifications:
