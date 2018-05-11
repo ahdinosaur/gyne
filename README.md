@@ -1,5 +1,7 @@
 # docker-up
 
+[![travis](https://travis-ci.org/buttcloud/docker-up.svg?branch=master)](https://travis-ci.org/buttcloud/docker-up) [![codecov](https://codecov.io/gh/buttcloud/docker-up/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/docker-up)
+
 _work in progress_
 
 opinionated glue to manage a Docker swarm
