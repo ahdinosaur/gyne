@@ -1,3 +1,7 @@
 const generic = require('./generic')
 
-module.exports = generic('volume')
+module.exports = generic({
+  name: 'volume',
+  hasUpdate: false,
+  idField: 'Name'
+})
