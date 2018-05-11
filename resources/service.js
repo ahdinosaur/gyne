@@ -1,4 +1,7 @@
 const generic = require('./generic')
 
-// TODO isUpdatable: true
-module.exports = generic('service')
+module.exports = generic({
+  name: 'service',
+  hasUpdate: true,
+  idField: 'ID'
+})

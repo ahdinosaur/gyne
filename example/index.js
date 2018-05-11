@@ -1,4 +1,5 @@
 const { join } = require('path')
+const step = require('callstep')
 
 const { Stack } = require('../')
 
@@ -8,10 +9,11 @@ const stack = Stack({
   debug: true
 })
 
-stack.up(config)(err => {
+step.series([
+  stack.up(config),
+  stack.up(config),
+  stack.down(config),
+  stack.down(config)
+])(err => {
   if (err) throw err
-
-  stack.down(config)(err => {
-    if (err) throw err
-  })
 })
