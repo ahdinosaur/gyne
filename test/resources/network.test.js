@@ -7,7 +7,7 @@ const Network = require('../../resources/network')
 
 test.cb('network.create happy path', t => {
   const givenConfig = {
-    Name: 'test_network'
+    name: 'test_network'
   }
   const givenResponse = {
     Id: 'da6f4d2f24db20a5e24be83233a22457928e0d17a0e0d09417aec12430d8fd0e',

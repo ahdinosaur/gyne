@@ -1,0 +1,36 @@
+* what should the config format be?
+
+---
+
+input up config
+
+walk config tree
+
+* fetch remote config on-demand
+* output flat arrays of networks, services, volumes
+
+get next api config
+
+get current api config (from inspect)
+
+diff
+
+turn diff into commands
+
+run api config
+
+---
+
+input up config
+
+walk config tree
+
+* fetch remote configs
+* take note of networks, services, volumes for total prune
+
+---
+
+cli changes
+
+* remove most commands, only system up and down
+* output diff, "do you want to change system?"

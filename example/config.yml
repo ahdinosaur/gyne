@@ -1,0 +1,16 @@
+volumes:
+  - name: test-up-volume
+networks:
+  - name: test-up-network
+services:
+  - name: test-up-service
+    image: nginx:alpine
+stacks:
+  - name: test-up-stack
+    networks:
+      - name: network
+    volumes:
+      - name: volume
+    services:
+      - name: service
+        image: dockersamples/visualizer
