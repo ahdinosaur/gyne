@@ -57,14 +57,17 @@
   },
   "dependencies": {
     "ansi-escape-sequences": "^4.0.0",
-    "callstep": "^1.0.0",
     "docker-remote-api": "^5.0.0",
+    "fluture": "^8.0.2",
+    "fluture-sanctuary-types": "^2.0.0",
+    "is-stream": "^1.1.0",
     "js-yaml": "^3.11.0",
-    "lodash": "^4.17.10",
     "minimist": "^1.2.0",
     "pino": "^4.16.1",
     "pino-colada": "^1.4.4",
     "pumpify": "^1.4.0",
+    "sanctuary": "^0.14.1",
+    "sanctuary-def": "^0.17.0",
     "simple-get": "^3.0.2"
   }
 }
