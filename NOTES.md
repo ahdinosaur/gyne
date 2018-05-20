@@ -34,3 +34,30 @@ cli changes
 
 * remove most commands, only system up and down
 * output diff, "do you want to change system?"
+
+---
+
+context
+
+* debug = false
+* pretty = false
+* docker
+  * request
+  * host
+  * version
+* log
+  * level
+  * stream
+
+stack config
+
+* name?
+* services?
+* networks?
+* volumes?
+
+service config
+
+up (context) (config) (cb)
+
+down (context) (config) (cb)
