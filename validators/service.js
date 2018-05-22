@@ -9,6 +9,11 @@ module.exports = validateObjectWithConstraints({
       name: 'name',
       validator: validateIsString,
       isRequired: true
+    },
+    {
+      name: 'image',
+      validator: validateIsString,
+      isRequired: true
     }
   ]
 })

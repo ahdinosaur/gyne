@@ -1,19 +1,19 @@
 const { join } = require('path')
-const step = require('callstep')
 
-const { Stack } = require('../')
+const Dock = require('../')
 
-const config = join(__dirname, './config.json')
-const stack = Stack({
+const config = join(__dirname, './config.yml')
+
+const options = {
   pretty: true,
   debug: true
-})
+}
 
-step.series([
-  stack.up(config),
-  stack.up(config),
-  stack.down(config),
-  stack.down(config)
-])(err => {
-  if (err) throw err
-})
+const dock = Dock(options)
+
+dock
+  .up(config)
+  .chain(() => dock.up(config))
+  .chain(() => dock.down(config))
+  .chain(() => dock.down(config))
+  .fork(console.error, () => console.log('done'))

@@ -4,12 +4,14 @@ const { parse: parseUrl } = require('url')
 const { extname } = require('path')
 const httpGet = require('simple-get')
 const { safeLoad: fromYaml } = require('js-yaml')
-const step = require('callstep')
+const Future = require('fluture')
 
+const waterfall = require('./waterfall')
+const validateConfig = require('../validators/stack')
 const withLogs = require('./withLogs')
 
 const fromJson = JSON.parse
-const fetchUrl = url => callback => {
+const fetchUrl = (url, callback) => {
   httpGet.concat(url, (err, res, data) => {
     if (err) callback(err)
     else callback(data)
@@ -19,16 +21,18 @@ const fetchUrl = url => callback => {
 module.exports = withConfig
 
 function withConfig ({ log }) {
-  const wrap = withLogs({ log, method: 'util:getConfig' })
-  return callstep => {
-    return rawConfig =>
-      step.waterfall([step.of(rawConfig), wrap(getConfig), callstep])
+  const wrapWithLogs = withLogs({ log, method: 'util:getConfig' })
+
+  return function wrappedWithConfig (step) {
+    return waterfall([wrapWithLogs(getConfig), step])
   }
 }
 
-function getConfig (config) {
-  return step.waterfall([readConfig(config), normalizeConfig()])
-}
+const getConfig = waterfall([
+  readConfig,
+  Future.encase(normalizeConfig),
+  Future.encase(validateConfig)
+])
 
 function readConfig (config) {
   if (isString(config)) {
@@ -38,38 +42,36 @@ function readConfig (config) {
     const type = extname(path).substring(1)
 
     if (isNil(protocol) || protocol === 'file') {
-      return step.waterfall([
-        step.to(readFile)(path),
-        data => step.of({ type, data })
-      ])
+      return Future.encaseN(readFile)(path).chain(data =>
+        Future.of({ type, data })
+      )
     } else if (protocol === 'http' || protocol === 'https') {
-      return step.waterfall([fetchUrl(href), data => step.of({ type, data })])
+      return Future.encaseN(fetchUrl)(href).chain(data =>
+        Future.of({ type, data })
+      )
     }
   }
   if (isObject(config)) {
-    return step.of({
+    return Future.of({
       type: 'object',
       data: config
     })
   }
 
-  return step.error(new Error(`unexpected config: ${config}`))
+  return Future.reject(new Error(`unexpected config: ${config}`))
 }
 
-function normalizeConfig () {
-  return ({ type, data }) =>
-    step.sync(() => {
-      switch (type) {
-        case 'json':
-          return fromJson(data)
-        case 'yml':
-        case 'yaml':
-          return fromYaml(data)
-        case 'object':
-          return data
-        default:
-          // this shouldn't happen
-          throw new Error(`unexpected config type: ${type}`)
-      }
-    })
+function normalizeConfig ({ type, data }) {
+  switch (type) {
+    case 'json':
+      return fromJson(data)
+    case 'yml':
+    case 'yaml':
+      return fromYaml(data)
+    case 'object':
+      return data
+    default:
+      // this shouldn't happen
+      throw new Error(`unexpected config type: ${type}`)
+  }
 }

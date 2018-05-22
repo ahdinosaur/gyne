@@ -8,7 +8,7 @@ const validateNetwork = require('./network')
 const validateService = require('./service')
 const validateVolume = require('./volume')
 
-module.exports = validateObjectWithConstraints({
+const validateStack = validateObjectWithConstraints({
   fields: [
     {
       name: 'name',
@@ -19,12 +19,21 @@ module.exports = validateObjectWithConstraints({
       validator: validateIsArrayOf(validateNetwork)
     },
     {
-      name: 'service',
+      name: 'services',
       validator: validateIsArrayOf(validateService)
     },
     {
-      name: 'volume',
+      name: 'volumes',
       validator: validateIsArrayOf(validateVolume)
+    },
+    {
+      name: 'stacks',
+      validator: validateIsArrayOf((...args) => {
+        // save against circular dependency
+        return validateStack(...args)
+      })
     }
   ]
 })
+
+module.exports = validateStack

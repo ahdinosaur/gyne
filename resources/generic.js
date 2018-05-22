@@ -1,18 +1,10 @@
 const assert = require('assert')
 const Url = require('url')
-const {
-  assign,
-  isBoolean,
-  isEmpty,
-  isNil,
-  isString,
-  negate
-} = require('lodash')
-const step = require('callstep')
+const { merge, isBoolean, isEmpty, isNil, isString } = require('ramda')
+const Future = require('fluture')
 
-const { Context, DOCKER_API_VERSION } = require('../defaults')
+const { DOCKER_API_VERSION } = require('../defaults')
 const { prefixName } = require('../util/namespace')
-const wrapMethod = require('../util/wrapMethod')
 
 module.exports = generic
 
@@ -32,41 +24,44 @@ function generic (options) {
     `docker-up/resources/generic.js: required string 'idField', given: ${idField}`
   )
 
-  return function Resource (context = {}) {
-    context = Context(context)
-
+  return function Resource (context) {
     const { docker, log } = context
 
     return {
-      create: wrapMethod({ log, method: `${resourceName}:create` })(create),
-      down: wrapMethod({ log, method: `${resourceName}:down` })(down),
-      inspect: wrapMethod({ log, method: `${resourceName}:inspect` })(inspect),
-      up: wrapMethod({ log, method: `${resourceName}:up` })(up),
-      update: hasUpdate
-        ? wrapMethod({ log, method: `${resourceName}:update` })(update)
-        : undefined,
-      remove: wrapMethod({ log, method: `${resourceName}:remove` })(remove)
+      create,
+      down,
+      inspect,
+      up,
+      update: hasUpdate ? update : undefined,
+      remove
     }
 
     function up (config) {
-      return step.waterfall([
-        step.swallowError(inspect(config)),
-        step.iff(
-          isNil,
-          () => create(config),
-          hasUpdate
-            ? ({ Version: { Index: version } }) => update(config, { version })
-            : step.noop
-        ),
-        () => inspect(config)
-      ])
+      return inspect(config)
+        .chainRej(err => {
+          return err.status === 404 ? Future.of(null) : Future.reject(err)
+        })
+        .chain(value => {
+          if (isNil(value)) {
+            return create(config)
+          }
+
+          if (hasUpdate) {
+            const { Version: { Index: version } } = value
+            return update(config, { version })
+          }
+
+          return Future.of(null)
+        })
+        .chain(() => inspect(config))
     }
 
     function down (config) {
-      return step.waterfall([
-        step.swallowError(inspect(config)),
-        step.iff(negate(isNil), () => remove(config), step.noop)
-      ])
+      return inspect(config)
+        .chain(() => remove(config))
+        .chainRej(err => {
+          return err.status === 404 ? Future.of(null) : Future.reject(err)
+        })
     }
 
     function create (config) {
@@ -75,13 +70,13 @@ function generic (options) {
       // namespace for nested stacks
       name = prefixName(context.namespace, name)
 
-      return cb => {
-        var json = assign({}, config, { Name: name })
+      return Future((resolve, reject) => {
+        var json = merge(config, { Name: name })
 
         // if in namespace
         if (!isEmpty(context.namespace)) {
           // add stack label
-          json.Labels = assign(
+          json.Labels = merge(
             {
               'com.docker.stack.namespace': context.namespace.join('__')
             },
@@ -98,7 +93,7 @@ function generic (options) {
           (err, response) => {
             if (err) {
               log.error(`Error creating ${resourceName}: ${name}`, err)
-              cb(err)
+              reject(err)
               return
             }
             if (response.warning) {
@@ -112,10 +107,10 @@ function generic (options) {
               config,
               response
             })
-            cb(null, getId(response))
+            resolve(getId(response))
           }
         )
-      }
+      })
     }
 
     function inspect (config) {
@@ -123,7 +118,7 @@ function generic (options) {
 
       name = prefixName(context.namespace, name)
 
-      return cb => {
+      return Future((resolve, reject) => {
         log.info(`Inspecting ${resourceName}: ${name}`, {
           action: `${resourceName}:inspect:before`,
           config
@@ -138,7 +133,7 @@ function generic (options) {
           (err, response) => {
             if (err) {
               log.error(`Error inspecting ${resourceName}: ${name}`, err)
-              cb(err)
+              reject(err)
               return
             }
             log.info(`Inspected ${resourceName}: ${name}`, {
@@ -146,10 +141,10 @@ function generic (options) {
               config,
               response
             })
-            cb(null, response)
+            resolve(response)
           }
         )
-      }
+      })
     }
 
     function update (config, params) {
@@ -157,19 +152,19 @@ function generic (options) {
 
       name = prefixName(context.namespace, name)
 
-      return cb => {
+      return Future((resolve, reject) => {
         log.info(`Updating ${resourceName}: ${name}`, {
           action: `${resourceName}:update:before`,
           config,
           params
         })
 
-        var json = assign({}, config, { Name: name })
+        var json = merge(config, { Name: name })
 
         // if in namespace
         if (!isEmpty(context.namespace)) {
           // add stack label
-          json.Labels = assign(
+          json.Labels = merge(
             {
               'com.docker.stack.namespace': context.namespace.join('__')
             },
@@ -191,7 +186,7 @@ function generic (options) {
           err => {
             if (err) {
               log.error(err, `Error updating ${resourceName}: ${name}`)
-              cb(err)
+              reject(err)
               return
             }
             log.info({
@@ -199,10 +194,10 @@ function generic (options) {
               config,
               message: `Updated ${resourceName}: ${name}`
             })
-            cb()
+            resolve()
           }
         )
-      }
+      })
     }
 
     function remove (config) {
@@ -210,7 +205,7 @@ function generic (options) {
 
       name = prefixName(context.namespace, name)
 
-      return cb => {
+      return Future((resolve, reject) => {
         log.info(`Removing ${resourceName}: ${name}`, {
           action: `${resourceName}:remove:before`,
           config
@@ -224,7 +219,7 @@ function generic (options) {
           err => {
             if (err) {
               log.error(err, `Error removing ${resourceName}: ${name}`)
-              cb(err)
+              reject(err)
               return
             }
             log.info({
@@ -232,10 +227,10 @@ function generic (options) {
               config,
               message: `Removed ${resourceName}: ${name}`
             })
-            cb()
+            resolve()
           }
         )
-      }
+      })
     }
 
     function getId (value) {
