@@ -1,10 +1,8 @@
-const { isEmpty } = require('lodash')
+const { isEmpty, isNil } = require('ramda')
 
-function prefixName (namespace, name) {
-  if (isEmpty(namespace)) return name
+function namespaceName (name, namespace) {
+  if (isNil(namespace) || isEmpty(namespace)) return name
   return `${namespace.join('__')}__${name}`
 }
 
-module.exports = {
-  prefixName
-}
+module.exports = namespaceName

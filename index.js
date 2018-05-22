@@ -1,10 +1,8 @@
 const Future = require('fluture')
-const Validation = require('folktale/validation')
-const {
-  isFailure,
-  defaultRenderers: { failureRenderer }
-} = require('folktale-validations')
 const { compose } = require('ramda')
+
+const createValidationError = require('./util/createValidationError')
+const Config = require('./config')
 
 /*
 const Network = require('./resources/network')
@@ -47,20 +45,13 @@ function Dock (context = {}) {
     down: wrapMethod({ log, method: 'down' })(down)
   }
 
-  function up (configValidation) {
-    if (isFailure(configValidation)) {
-      return Future.reject(createValidationError(configValidation.value))
-    }
-    const config = configValidation.value
+  function up (config) {
     console.log('up config', config)
+    console.log('whhatttt config', JSON.stringify(Config(config), null, 2))
     return Future.of()
   }
 
-  function down (configValidation) {
-    if (Validation.Failure.hasInstance(configValidation)) {
-      return Future.reject(createValidationError(configValidation))
-    }
-    const config = configValidation.value
+  function down (config) {
     console.log('down config', config)
     return Future.of()
   }
@@ -68,9 +59,4 @@ function Dock (context = {}) {
 
 function wrapMethod ({ log, method }) {
   return compose(withConfig({ log }), withLogs({ log, method }))
-}
-
-function createValidationError (value) {
-  const message = failureRenderer(value)
-  return new Error(message)
 }

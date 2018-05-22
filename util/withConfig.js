@@ -5,10 +5,12 @@ const { extname } = require('path')
 const httpGet = require('simple-get')
 const { safeLoad: fromYaml } = require('js-yaml')
 const Future = require('fluture')
+const { isFailure } = require('folktale-validations')
 
 const waterfall = require('./waterfall')
-const validateConfig = require('../validators/stack')
+const configValidator = require('../validators/stack')
 const withLogs = require('./withLogs')
+const createValidationError = require('./createValidationError')
 
 const fromJson = JSON.parse
 const fetchUrl = (url, callback) => {
@@ -74,4 +76,12 @@ function normalizeConfig ({ type, data }) {
       // this shouldn't happen
       throw new Error(`unexpected config type: ${type}`)
   }
+}
+
+function validateConfig (config) {
+  const validation = configValidator(config)
+  if (isFailure(validation)) {
+    throw createValidationError(validation.value)
+  }
+  return validation.value
 }
