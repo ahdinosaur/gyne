@@ -68,6 +68,7 @@
     "pino-colada": "^1.4.4",
     "pumpify": "^1.4.0",
     "ramda": "^0.25.0",
+    "ramda-adjunct": "^2.8.0",
     "simple-get": "^3.0.2"
   }
 }

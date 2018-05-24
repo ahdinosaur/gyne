@@ -1,8 +1,22 @@
-const { isEmpty, isNil } = require('ramda')
+const { isEmpty, isNil, merge } = require('ramda')
 
-function namespaceName (name, namespace) {
+module.exports = {
+  name: namespaceName,
+  labels: namespaceLabels
+}
+
+function namespaceName (namespace, name) {
   if (isNil(namespace) || isEmpty(namespace)) return name
   return `${namespace.join('__')}__${name}`
 }
 
-module.exports = namespaceName
+function namespaceLabels (namespace, labels) {
+  if (isNil(namespace) || isEmpty(namespace)) return labels
+  // add stack label
+  return merge(
+    {
+      'com.docker.stack.namespace': namespace.join('__')
+    },
+    labels
+  )
+}

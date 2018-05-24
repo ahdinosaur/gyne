@@ -1,11 +1,20 @@
-const namespaceName = require('../util/namespace')
+const Namespace = require('../util/namespace')
 
-module.exports = createVolumeConfig
+const fields = {
+  Name: true,
+  Labels: true
+}
+
+module.exports = {
+  create: createVolumeConfig,
+  fields
+}
 
 function createVolumeConfig (config) {
-  const { name, namespace } = config
+  const { labels, name, namespace } = config
 
   return {
-    Name: namespaceName(name, namespace)
+    Name: Namespace.name(namespace, name),
+    Labels: Namespace.labels(namespace, labels)
   }
 }

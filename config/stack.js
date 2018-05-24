@@ -22,14 +22,16 @@ const Stack = pipe(
     })(config)
   },
   evolve({
-    networks: map(Network),
-    services: map(Service),
-    volumes: map(Volume),
+    networks: map(Network.create),
+    services: map(Service.create),
+    volumes: map(Volume.create),
     stacks: map(stack => Stack(stack))
   }),
   config => {
     const { stacks = [] } = config
-    return mergeConfigs([config, ...stacks])
+    const { networks, services, volumes } = config
+    const stack = { networks, services, volumes }
+    return mergeConfigs([stack, ...stacks])
   }
 )
 

@@ -1,5 +1,6 @@
 const { readFile } = require('fs')
-const { isNil, isObject, isString } = require('lodash')
+const { isNil, isObject } = require('ramda')
+const { isString } = require('ramda-adjunct')
 const { parse: parseUrl } = require('url')
 const { extname } = require('path')
 const httpGet = require('simple-get')

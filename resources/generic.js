@@ -1,15 +1,13 @@
 const assert = require('assert')
 const Url = require('url')
-const { merge, isBoolean, isEmpty, isNil, isString } = require('ramda')
+const { map, isNil, tap } = require('ramda')
+const { isBoolean, isString } = require('ramda-adjunct')
 const Future = require('fluture')
-
-const { DOCKER_API_VERSION } = require('../defaults')
-const { prefixName } = require('../util/namespace')
 
 module.exports = generic
 
 function generic (options) {
-  const { name: resourceName, hasUpdate, idField } = options
+  const { name: resourceName, hasUpdate, idField, listField } = options
 
   assert(
     isString(resourceName),
@@ -23,6 +21,10 @@ function generic (options) {
     isString(idField),
     `docker-up/resources/generic.js: required string 'idField', given: ${idField}`
   )
+  assert(
+    isNil(listField) || isString(listField),
+    `docker-up/resources/generic.js: optional string 'listField', given: ${listField}`
+  )
 
   return function Resource (context) {
     const { docker, log } = context
@@ -31,6 +33,7 @@ function generic (options) {
       create,
       down,
       inspect,
+      list,
       up,
       update: hasUpdate ? update : undefined,
       remove
@@ -67,35 +70,18 @@ function generic (options) {
     function create (config) {
       var { Name: name } = config
 
-      // namespace for nested stacks
-      name = prefixName(context.namespace, name)
+      log.info(`Creating ${resourceName}: ${name}`, {
+        action: `${resourceName}:create:before`,
+        config
+      })
 
-      return Future((resolve, reject) => {
-        var json = merge(config, { Name: name })
-
-        // if in namespace
-        if (!isEmpty(context.namespace)) {
-          // add stack label
-          json.Labels = merge(
-            {
-              'com.docker.stack.namespace': context.namespace.join('__')
-            },
-            json.Labels
-          )
-        }
-
-        docker.post(
-          `/${resourceName}s/create`,
-          {
-            json,
-            version: DOCKER_API_VERSION
-          },
-          (err, response) => {
-            if (err) {
-              log.error(`Error creating ${resourceName}: ${name}`, err)
-              reject(err)
-              return
-            }
+      return docker
+        .post(`/${resourceName}s/create`, {
+          json: config
+        })
+        .bimap(
+          tap(err => log.error(`Error creating ${resourceName}: ${name}`, err)),
+          tap(response => {
             if (response.warning) {
               log.warn(response.Warning, {
                 action: `${resourceName}:create`,
@@ -107,130 +93,112 @@ function generic (options) {
               config,
               response
             })
-            resolve(getId(response))
-          }
+          })
         )
-      })
+        .map(getId)
     }
 
     function inspect (config) {
-      var { Name: name } = config
+      const { Name: name } = config
 
-      name = prefixName(context.namespace, name)
+      log.info(`Inspecting ${resourceName}: ${name}`, {
+        action: `${resourceName}:inspect:before`,
+        config
+      })
 
-      return Future((resolve, reject) => {
-        log.info(`Inspecting ${resourceName}: ${name}`, {
-          action: `${resourceName}:inspect:before`,
-          config
+      return docker
+        .get(`/${resourceName}s/${name}`, {
+          json: true
         })
-
-        docker.get(
-          `/${resourceName}s/${name}`,
-          {
-            json: true,
-            version: DOCKER_API_VERSION
-          },
-          (err, response) => {
-            if (err) {
-              log.error(`Error inspecting ${resourceName}: ${name}`, err)
-              reject(err)
-              return
-            }
+        .bimap(
+          tap(err =>
+            log.error(`Error inspecting ${resourceName}: ${name}`, err)
+          ),
+          tap(response => {
             log.info(`Inspected ${resourceName}: ${name}`, {
               action: `${resourceName}:inspect:after`,
               config,
               response
             })
-            resolve(response)
-          }
+          })
         )
+    }
+
+    function list () {
+      log.info(`Listing ${resourceName}:`, {
+        action: `${resourceName}:list:before`
       })
+
+      return docker
+        .get(`/${resourceName}s`, {
+          json: true
+        })
+        .bimap(
+          tap(err => log.error(err, `Error listing ${resourceName}`)),
+          tap(response => {
+            log.info({
+              action: `${resourceName}:list:after`,
+              message: `Listed ${resourceName}`,
+              response
+            })
+          })
+        )
+        .chain(response => {
+          const resources = isNil(listField) ? response : response[listField]
+
+          return Future.parallel(Infinity, map(inspect, resources))
+        })
     }
 
     function update (config, params) {
-      var { Name: name } = config
+      const { Name: name } = config
 
-      name = prefixName(context.namespace, name)
+      log.info(`Updating ${resourceName}: ${name}`, {
+        action: `${resourceName}:update:before`,
+        config,
+        params
+      })
 
-      return Future((resolve, reject) => {
-        log.info(`Updating ${resourceName}: ${name}`, {
-          action: `${resourceName}:update:before`,
-          config,
-          params
+      const url = Url.format({
+        pathname: `/${resourceName}s/${name}/update`,
+        query: params
+      })
+
+      return docker
+        .post(url, {
+          json: config
         })
-
-        var json = merge(config, { Name: name })
-
-        // if in namespace
-        if (!isEmpty(context.namespace)) {
-          // add stack label
-          json.Labels = merge(
-            {
-              'com.docker.stack.namespace': context.namespace.join('__')
-            },
-            json.Labels
-          )
-        }
-
-        const url = Url.format({
-          pathname: `/${resourceName}s/${name}/update`,
-          query: params
-        })
-
-        docker.post(
-          url,
-          {
-            json,
-            version: DOCKER_API_VERSION
-          },
-          err => {
-            if (err) {
-              log.error(err, `Error updating ${resourceName}: ${name}`)
-              reject(err)
-              return
-            }
+        .bimap(
+          tap(err => log.error(err, `Error updating ${resourceName}: ${name}`)),
+          tap(response => {
             log.info({
               action: `${resourceName}:update:after`,
+              message: `Updated ${resourceName}: ${name}`,
               config,
-              message: `Updated ${resourceName}: ${name}`
+              response
             })
-            resolve()
-          }
+          })
         )
-      })
     }
 
     function remove (config) {
       var { Name: name } = config
 
-      name = prefixName(context.namespace, name)
-
-      return Future((resolve, reject) => {
-        log.info(`Removing ${resourceName}: ${name}`, {
-          action: `${resourceName}:remove:before`,
-          config
-        })
-
-        docker.delete(
-          `/${resourceName}s/${name}`,
-          {
-            version: DOCKER_API_VERSION
-          },
-          err => {
-            if (err) {
-              log.error(err, `Error removing ${resourceName}: ${name}`)
-              reject(err)
-              return
-            }
-            log.info({
-              action: `${resourceName}:remove:after`,
-              config,
-              message: `Removed ${resourceName}: ${name}`
-            })
-            resolve()
-          }
-        )
+      log.info(`Removing ${resourceName}: ${name}`, {
+        action: `${resourceName}:remove:before`,
+        config
       })
+
+      return docker.delete(`/${resourceName}s/${name}`).bimap(
+        tap(err => log.error(err, `Error removing ${resourceName}: ${name}`)),
+        tap(() => {
+          log.info({
+            action: `${resourceName}:remove:after`,
+            config,
+            message: `Removed ${resourceName}: ${name}`
+          })
+        })
+      )
     }
 
     function getId (value) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { relative, isAbsolute } = require('path')
-const { isNil, pick } = require('lodash')
+const { isNil, pick } = require('ramda')
 const parseArgs = require('minimist')
 const ansi = require('ansi-escape-sequences')
 
@@ -82,7 +82,7 @@ const args = parseArgs(process.argv.slice(2), {
       return
     }
 
-    const context = pick(args, ['debug', 'pretty'])
+    const context = pick(['debug', 'pretty'], args)
 
     const resource = Resource(context)
     const command = resource[commandName]
