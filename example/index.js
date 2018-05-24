@@ -1,6 +1,7 @@
 const { join } = require('path')
 
 const Dock = require('../')
+const waterfall = require('../util/waterfall')
 
 const config = join(__dirname, './config.yml')
 
@@ -11,9 +12,17 @@ const options = {
 
 const dock = Dock(options)
 
-dock
-  .up(config)
-  .chain(() => dock.up(config))
-  .chain(() => dock.down(config))
-  .chain(() => dock.down(config))
-  .fork(console.error, () => console.log('done'))
+waterfall([
+  () => dock.diff(config),
+  diff => {
+    console.log('up diff', diff)
+    return dock.patch(diff)
+  }
+  /*
+  () => dock.diff({}),
+  diff => {
+    console.log('down diff', diff)
+    return dock.patch(diff)
+  },
+  */
+])().fork(console.error, () => console.log('done'))

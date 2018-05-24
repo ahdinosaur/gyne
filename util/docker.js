@@ -9,8 +9,6 @@ function DockerApi (options = {}) {
 
   DockerBaseApi.call(this, options)
 
-  console.log('this', this)
-
   this.version = options.version
 }
 
@@ -20,8 +18,6 @@ Object.assign(
   DockerApi.prototype,
   pick(['type', 'request'], DockerBaseApi.prototype)
 )
-
-console.log('request', DockerApi.prototype)
 
 DockerApi.prototype.get = wrapMethod(DockerBaseApi.prototype.get)
 DockerApi.prototype.put = wrapMethod(DockerBaseApi.prototype.put)

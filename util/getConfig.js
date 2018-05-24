@@ -1,6 +1,6 @@
 const { readFile } = require('fs')
-const { isNil, isObject } = require('ramda')
-const { isString } = require('ramda-adjunct')
+const { isNil } = require('ramda')
+const { isObject, isString } = require('ramda-adjunct')
 const { parse: parseUrl } = require('url')
 const { extname } = require('path')
 const httpGet = require('simple-get')
@@ -10,7 +10,6 @@ const { isFailure } = require('folktale-validations')
 
 const waterfall = require('./waterfall')
 const configValidator = require('../validators/stack')
-const withLogs = require('./withLogs')
 const createValidationError = require('./createValidationError')
 
 const fromJson = JSON.parse
@@ -21,21 +20,13 @@ const fetchUrl = (url, callback) => {
   })
 }
 
-module.exports = withConfig
-
-function withConfig ({ log }) {
-  const wrapWithLogs = withLogs({ log, method: 'util:getConfig' })
-
-  return function wrappedWithConfig (step) {
-    return waterfall([wrapWithLogs(getConfig), step])
-  }
-}
-
 const getConfig = waterfall([
   readConfig,
   Future.encase(normalizeConfig),
   Future.encase(validateConfig)
 ])
+
+module.exports = getConfig
 
 function readConfig (config) {
   if (isString(config)) {

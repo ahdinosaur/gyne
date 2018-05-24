@@ -1,7 +1,8 @@
 const Future = require('fluture')
-const { compose, map } = require('ramda')
+const { map } = require('ramda')
 
 const createValidationError = require('./util/createValidationError')
+const diffConfigs = require('./config/diff')
 const Config = require('./config')
 
 const Network = require('./resources/network')
@@ -9,7 +10,7 @@ const Service = require('./resources/service')
 const Volume = require('./resources/volume')
 
 const { Context } = require('./defaults')
-const withConfig = require('./util/withConfig')
+const getConfig = require('./util/getConfig')
 const withLogs = require('./util/withLogs')
 const validateContext = require('./validators/context')
 
@@ -38,58 +39,69 @@ function Dock (context = {}) {
 
   // return methods
   return {
-    up: wrapMethod({ log, method: 'up' })(up),
-    down: wrapMethod({ log, method: 'down' })(down)
+    diff: withLogs({ log, method: 'diff' })(diff),
+    patch: withLogs({ log, method: 'patch' })(patch)
   }
 
-  function up (config) {
-    console.log('up config', config)
-    console.log('whhatttt config', JSON.stringify(Config(config), null, 2))
-    listAllResources(context).value(resources => {
-      console.log('resources', resources)
+  function diff (rawConfig) {
+    return Future.parallel(Infinity, [
+      listAllResources(context),
+      getConfig(rawConfig).map(Config)
+    ]).map(([currentConfig, nextConfig]) => {
+      console.log('currentConfig', currentConfig)
+      console.log('nextConfig', nextConfig)
+      const diff = diffConfigs(currentConfig, nextConfig)
+      console.log('diff', JSON.stringify(diff, null, 2))
+      // create
+      // update
+      // remove
+      return diff
     })
-
-    return Future.of()
   }
 
-  function down (config) {
-    console.log('down config', config)
+  function patch (config) {
     return Future.of()
   }
 }
 
-function wrapMethod ({ log, method }) {
-  return compose(withConfig({ log }), withLogs({ log, method }))
-}
-
-const { evolve } = require('ramda')
+const { complement, evolve, filter } = require('ramda')
 const pickFields = require('./util/pickFields')
 const NetworkConfig = require('./config/network')
 const ServiceConfig = require('./config/service')
 const VolumeConfig = require('./config/volume')
 
-const { tap } = require('ramda')
-
 function listAllResources (context) {
+  return Future.parallel(Infinity, [
+    Network(context).list(),
+    Service(context).list(),
+    Volume(context).list()
+  ])
+    .map(([networks, services, volumes]) => ({
+      networks,
+      services,
+      volumes
+    }))
+    .map(
+      evolve({
+        networks: filter(complement(isDefaultNetwork))
+      })
+    )
+    .map(
+      evolve({
+        networks: map(pickFields(NetworkConfig.fields)),
+        services: map(pickFields(ServiceConfig.fields)),
+        volumes: map(pickFields(VolumeConfig.fields))
+      })
+    )
+}
+
+function isDefaultNetwork (network) {
+  const { Name } = network
   return (
-    Future.parallel(Infinity, [
-      Network(context).list(),
-      Service(context).list(),
-      Volume(context).list()
-    ])
-      .map(([networks, services, volumes]) => ({
-        networks,
-        services,
-        volumes
-      }))
-      // .map(tap(console.log.bind(console, 'heyheyhey')))
-      .map(
-        evolve({
-          networks: map(pickFields(NetworkConfig.fields)),
-          services: map(pickFields(ServiceConfig.fields)),
-          volumes: map(pickFields(VolumeConfig.fields))
-        })
-      )
-      .map(tap(console.log.bind(console, 'heyheyhey')))
+    Name === 'ingress' ||
+    Name === 'bridge' ||
+    Name === 'none' ||
+    Name === 'docker_gwbridge' ||
+    Name === 'host'
   )
 }

@@ -124,7 +124,7 @@ function generic (options) {
         )
     }
 
-    function list () {
+    function list (params) {
       log.info(`Listing ${resourceName}:`, {
         action: `${resourceName}:list:before`
       })
@@ -143,10 +143,15 @@ function generic (options) {
             })
           })
         )
-        .chain(response => {
-          const resources = isNil(listField) ? response : response[listField]
-
-          return Future.parallel(Infinity, map(inspect, resources))
+        .map(response => {
+          return isNil(listField) ? response : response[listField]
+        })
+        .chain(resources => {
+          if (params.inspect) {
+            return Future.parallel(8, map(inspect, resources))
+          } else {
+            return Future.of(resources)
+          }
         })
     }
 
