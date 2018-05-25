@@ -1,3 +1,9 @@
+what to do about service?
+
+inspecting a service is different from creating / updating a service
+
+---
+
 * what should the config format be?
 
 ---

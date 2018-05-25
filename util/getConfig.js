@@ -45,6 +45,7 @@ function readConfig (config) {
       )
     }
   }
+
   if (isObject(config)) {
     return Future.of({
       type: 'object',

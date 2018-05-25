@@ -59,8 +59,8 @@ function Dock (context = {}) {
     })
   }
 
-  function patch (config) {
-    return Future.of()
+  function patch (diff) {
+    return patchResources(context)(diff)
   }
 }
 
@@ -104,4 +104,28 @@ function isDefaultNetwork (network) {
     Name === 'docker_gwbridge' ||
     Name === 'host'
   )
+}
+
+function patchResources (context) {
+  const patchNetworks = patchResource(Network(context))
+  const patchServices = patchResource(Service(context))
+  const patchVolumes = patchResource(Volume(context))
+
+  return diff => {
+    return Future.parallel(Infinity, [
+      patchNetworks(diff.networks),
+      patchServices(diff.services),
+      patchVolumes(diff.volumes)
+    ])
+  }
+}
+
+function patchResource (resource) {
+  return diff => {
+    return Future.parallel(10, [
+      ...map(resource.create, diff.create),
+      ...map(resource.update, diff.update),
+      ...map(resource.remove, diff.remove)
+    ])
+  }
 }

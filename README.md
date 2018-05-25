@@ -1,6 +1,6 @@
-# docker-up
+# longshore
 
-[![travis](https://travis-ci.org/buttcloud/docker-up.svg?branch=master)](https://travis-ci.org/buttcloud/docker-up) [![codecov](https://codecov.io/gh/buttcloud/docker-up/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/docker-up)
+[![travis](https://travis-ci.org/buttcloud/longshore.svg?branch=master)](https://travis-ci.org/buttcloud/longshore) [![codecov](https://codecov.io/gh/buttcloud/longshore/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/longshore)
 
 _work in progress_
 
@@ -9,7 +9,7 @@ opinionated glue to manage a Docker swarm
 built for [ButtCloud](http://buttcloud.org)
 
 ```shell
-# npm install --save docker-up
+# npm install --save longshore
 ```
 
 ## features
@@ -26,20 +26,20 @@ also known as, _what we need for ButtCloud_:
 ### up
 
 ```shell
-docker-up stack up ./example/config.json
+longshore stack up ./example/config.json
 ```
 
 ### down
 
 ```shell
-docker-up stack down ./example/config.json
+longshore stack down ./example/config.json
 ```
 
 ## api
 
-### `{ System } = require('docker-up')`
+### `{ System } = require('longshore')`
 
-### `Stack = require('docker-up').default`
+### `Stack = require('longshore').default`
 
 ### `stack = system(context)`
 
@@ -64,7 +64,7 @@ where `context` is an optional object with:
 * `Services`: array of service options
 * `Stacks`: array of stack options
 
-### `{ Service } = require('docker-up')`
+### `{ Service } = require('longshore')`
 
 ### `service = Service(context)`
 
@@ -74,7 +74,7 @@ where `context` is an optional object with:
 
 `config` matches [Docker API Service config](https://docs.docker.com/engine/api/v1.37/#operation/ServiceCreate)
 
-### `{ Network } = require('docker-up')`
+### `{ Network } = require('longshore')`
 
 ### `network = Network(context)`
 
@@ -84,7 +84,7 @@ where `context` is an optional object with:
 
 `config` matches [Docker API Network config](https://docs.docker.com/engine/api/v1.37/#operation/NetworkCreate)
 
-### `{ Volume } = require('docker-up')`
+### `{ Volume } = require('longshore')`
 
 ### `volume = Volume(context)`
 

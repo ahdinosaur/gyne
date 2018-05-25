@@ -1,6 +1,6 @@
 const assert = require('assert')
 const Url = require('url')
-const { map, isNil, tap } = require('ramda')
+const { map, merge, isNil, tap } = require('ramda')
 const { isBoolean, isString } = require('ramda-adjunct')
 const Future = require('fluture')
 
@@ -35,7 +35,7 @@ function generic (options) {
       inspect,
       list,
       up,
-      update: hasUpdate ? update : undefined,
+      update: hasUpdate ? update : () => Future.of(null),
       remove
     }
 
@@ -124,7 +124,7 @@ function generic (options) {
         )
     }
 
-    function list (params) {
+    function list () {
       log.info(`Listing ${resourceName}:`, {
         action: `${resourceName}:list:before`
       })
@@ -147,11 +147,11 @@ function generic (options) {
           return isNil(listField) ? response : response[listField]
         })
         .chain(resources => {
-          if (params.inspect) {
-            return Future.parallel(8, map(inspect, resources))
-          } else {
-            return Future.of(resources)
-          }
+          const eachResource = map(resource => {
+            const { Name } = resource
+            return inspect(resource).map(merge({ Name }))
+          })
+          return Future.parallel(8, eachResource(resources))
         })
     }
 

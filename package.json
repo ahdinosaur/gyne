@@ -1,5 +1,5 @@
 {
-  "name": "docker-up",
+  "name": "longshore",
   "version": "0.0.0",
   "description": "manage a swarm of Docker stacks, networks, and volumes",
   "main": "index.js",
@@ -35,15 +35,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ahdinosaur/docker-up.git"
+    "url": "git+https://github.com/buttcloud/longshore.git"
   },
   "keywords": [],
   "author": "Mikey <michael.williams@enspiral.com> (http://dinosaur.is)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ahdinosaur/docker-up/issues"
+    "url": "https://github.com/buttcloud/longshore/issues"
   },
-  "homepage": "https://github.com/ahdinosaur/docker-up#readme",
+  "homepage": "https://github.com/buttcloud/longshore#readme",
   "devDependencies": {
     "ava": "^0.25.0",
     "dependency-check": "^2.7.0",

@@ -7,6 +7,9 @@ const fields = {
     ContainerSpec: {
       Image: true
     }
+  },
+  Version: {
+    Index: true
   }
 }
 
