@@ -15,14 +15,12 @@ const dock = Dock(context)
 waterfall([
   () => dock.diff(config),
   diff => {
-    console.log('up diff', diff)
-    return dock.patch(diff)
-  }
-  /*
-  () => dock.diff({}),
-  diff => {
-    console.log('down diff', diff)
+    console.log('up diff', JSON.stringify(diff, null, 2))
     return dock.patch(diff)
   },
-  */
+  () => dock.diff({}),
+  diff => {
+    console.log('down diff', JSON.stringify(diff, null, 2))
+    return dock.patch(diff)
+  }
 ])().fork(console.error, () => console.log('done'))

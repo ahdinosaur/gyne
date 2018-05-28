@@ -1,14 +1,15 @@
 const assert = require('assert')
 const {
+  complement,
   difference,
   filter,
   indexBy,
   map,
-  merge,
   pipe,
   prop,
   props,
   intersection,
+  isNil,
   uniq
 } = require('ramda')
 
@@ -56,12 +57,9 @@ function diffResources (resourceName, current = [], next = []) {
       const current = currentByName[name]
       const next = nextByName[name]
       const diff = diffObjects(current, next)
-      if (diff.hasChanged) {
-        return merge(diff, { next })
-      }
-      return diff
+      if (diff.hasChanged) return next
     }),
-    filter(prop('hasChanged'))
+    filter(complement(isNil))
   )
   const update = getUpdate(namesToUpdate)
 

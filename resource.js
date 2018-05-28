@@ -157,23 +157,26 @@ function GenericResource (options) {
         */
     }
 
-    function update (config, params) {
+    function update (config) {
       const { Name: name } = config
 
-      log.info(`Updating ${resourceName}: ${name}`, {
-        action: `${resourceName}:update:before`,
-        config,
-        params
-      })
-
-      const url = Url.format({
-        pathname: `/${resourceName}s/${name}/update`,
-        query: params
-      })
-
-      return docker
-        .post(url, {
-          json: config
+      return inspect(config)
+        .chain(current => {
+          const params = {
+            version: current.Version.Index
+          }
+          const url = Url.format({
+            pathname: `/${resourceName}s/${name}/update`,
+            query: params
+          })
+          log.info(`Updating ${resourceName}: ${name}`, {
+            action: `${resourceName}:update:before`,
+            config,
+            params
+          })
+          docker.post(url, {
+            json: config
+          })
         })
         .bimap(
           tap(err => log.error(err, `Error updating ${resourceName}: ${name}`)),
@@ -196,16 +199,19 @@ function GenericResource (options) {
         config
       })
 
-      return docker.delete(`/${resourceName}s/${name}`).bimap(
-        tap(err => log.error(err, `Error removing ${resourceName}: ${name}`)),
-        tap(() => {
-          log.info({
-            action: `${resourceName}:remove:after`,
-            config,
-            message: `Removed ${resourceName}: ${name}`
-          })
-        })
-      )
+      return docker
+        .delete(`/${resourceName}s/${name}`)
+        .bimap(
+          tap(err => log.error(err, `Error removing ${resourceName}: ${name}`)),
+          () => {
+            log.info({
+              action: `${resourceName}:remove:after`,
+              config,
+              message: `Removed ${resourceName}: ${name}`
+            })
+            return null
+          }
+        )
     }
 
     function getId (value) {

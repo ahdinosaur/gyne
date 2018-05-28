@@ -1,5 +1,5 @@
 const Future = require('fluture')
-const { complement, evolve, filter } = require('ramda')
+const { complement, evolve, filter, map } = require('ramda')
 
 const NetworkResource = require('../network/resource')
 const ServiceResource = require('../service/resource')
@@ -13,7 +13,8 @@ function StackResource (context) {
   const volumeResource = VolumeResource(context)
 
   return {
-    list
+    list,
+    patch
   }
 
   function list () {
@@ -33,6 +34,14 @@ function StackResource (context) {
         })
       )
   }
+
+  function patch (diff) {
+    return Future.parallel(Infinity, [
+      patchResource(networkResource)(diff.networks),
+      patchResource(serviceResource)(diff.services),
+      patchResource(volumeResource)(diff.volumes)
+    ])
+  }
 }
 
 function isDefaultNetwork (network) {
@@ -44,4 +53,14 @@ function isDefaultNetwork (network) {
     Name === 'docker_gwbridge' ||
     Name === 'host'
   )
+}
+
+function patchResource (resource) {
+  return diff => {
+    return Future.parallel(10, [
+      ...map(resource.create, diff.create),
+      ...map(resource.update, diff.update),
+      ...map(resource.remove, diff.remove)
+    ])
+  }
 }

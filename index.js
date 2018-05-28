@@ -26,6 +26,7 @@ function Dock (context = {}) {
   })
 
   const { log } = context
+  const stackResource = StackResource(context)
 
   // return methods
   return {
@@ -34,14 +35,11 @@ function Dock (context = {}) {
   }
 
   function diff (rawConfig) {
-    const futureCurrentSpec = StackResource(context)
-      .list()
-      .map(StackSpec.fromInspect)
+    const futureCurrentSpec = stackResource.list().map(StackSpec.fromInspect)
 
     const futureNextSpec = getConfig(rawConfig)
       .chain(config =>
         Future((reject, resolve) => {
-          console.log('config', config)
           StackConfig.validate(config).matchWith({
             Failure: ({ value }) => {
               reject(createValidationError(value))
@@ -54,45 +52,12 @@ function Dock (context = {}) {
 
     return Future.parallel(Infinity, [futureCurrentSpec, futureNextSpec]).map(
       ([currentSpec, nextSpec]) => {
-        console.log('current spec', currentSpec)
-        console.log('next spec', nextSpec)
-        const diff = diffSpecs(currentSpec, nextSpec)
-        console.log('diff', JSON.stringify(diff, null, 2))
-        // create
-        // update
-        // remove
-        return diff
+        return diffSpecs(currentSpec, nextSpec)
       }
     )
   }
 
   function patch (diff) {
-    // patchResources(context)(diff)
+    return stackResource.patch(diff)
   }
 }
-
-/*
-function patchResources (context) {
-  const patchNetworks = patchResource(Network(context))
-  const patchServices = patchResource(Service(context))
-  const patchVolumes = patchResource(Volume(context))
-
-  return diff => {
-    return Future.parallel(Infinity, [
-      patchNetworks(diff.networks),
-      patchServices(diff.services),
-      patchVolumes(diff.volumes)
-    ])
-  }
-}
-
-function patchResource (resource) {
-  return diff => {
-    return Future.parallel(10, [
-      ...map(resource.create, diff.create),
-      ...map(resource.update, diff.update),
-      ...map(resource.remove, diff.remove)
-    ])
-  }
-}
-*/
