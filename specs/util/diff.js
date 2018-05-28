@@ -13,11 +13,11 @@ const {
   uniq
 } = require('ramda')
 
-const diffObjects = require('../util/diffObjects')
+const diffObjects = require('../../util/diffObjects')
 
-module.exports = diffConfigs
+module.exports = diffSpecs
 
-function diffConfigs (current = {}, next = {}) {
+function diffSpecs (current = {}, next = {}) {
   return {
     networks: diffResources('networks', current.networks, next.networks),
     services: diffResources('services', current.services, next.services),

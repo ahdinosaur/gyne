@@ -1,10 +1,10 @@
 const assert = require('assert')
 const Url = require('url')
-const { isNil, tap } = require('ramda')
+const { defaultTo, isNil, tap } = require('ramda')
 const { isBoolean, isString } = require('ramda-adjunct')
 const Future = require('fluture')
 
-module.exports = { GenericResource }
+module.exports = GenericResource
 
 function GenericResource (options) {
   const { name: resourceName, hasUpdate, idField, listField } = options
@@ -146,6 +146,7 @@ function GenericResource (options) {
         .map(response => {
           return isNil(listField) ? response : response[listField]
         })
+        .map(defaultTo([]))
       /*
         .chain(resources => {
           const eachResource = map(resource => {

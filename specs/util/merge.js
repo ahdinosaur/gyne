@@ -1,12 +1,12 @@
 const { reduce } = require('ramda')
 
-module.exports = mergeAllConfigs
+module.exports = mergeAllSpecs
 
-function mergeAllConfigs (configs = []) {
-  return reduce(mergeConfigs, {}, configs)
+function mergeAllSpecs (configs = []) {
+  return reduce(mergeSpecs, {}, configs)
 }
 
-function mergeConfigs (first = {}, second = {}) {
+function mergeSpecs (first = {}, second = {}) {
   const {
     networks: firstNetworks = [],
     services: firstServices = [],

@@ -1,6 +1,6 @@
 const { apply, defaultTo, evolve, pipe, props } = require('ramda')
 
-const Namespace = require('../spec/namespace')
+const Namespace = require('./util/namespace')
 const populateFields = require('../util/populateFields')
 const pickFields = require('../util/pickFields')
 

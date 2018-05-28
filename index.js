@@ -3,17 +3,17 @@ const Future = require('fluture')
 const withLogs = require('./util/withLogs')
 const createValidationError = require('./util/createValidationError')
 
-const diffSpecs = require('./spec/diff')
-const getConfig = require('./config/get')
-const StackSpec = require('./stack/spec')
-const StackConfig = require('./stack/config')
-const StackResource = require('./stack/resource')
 const createContext = require('./context/create')
 const validateContext = require('./context/validate')
+const diffSpecs = require('./specs/util/diff')
+const getConfig = require('./configs/util/get')
+
+const StackSpec = require('./specs/stack')
+const StackConfig = require('./configs/stack')
+const StackResource = require('./resources/stack')
 
 module.exports = Dock
 
-// returns Result<Diff>
 function Dock (context = {}) {
   // validate context
   validateContext(context).matchWith({
@@ -34,6 +34,7 @@ function Dock (context = {}) {
     patch: withLogs({ log, method: 'patch' })(patch)
   }
 
+  // returns Future<Diff>
   function diff (rawConfig) {
     const futureCurrentSpec = stackResource.list().map(StackSpec.fromInspect)
 
@@ -57,6 +58,7 @@ function Dock (context = {}) {
     )
   }
 
+  // returns Future<?>
   function patch (diff) {
     return stackResource.patch(diff)
   }

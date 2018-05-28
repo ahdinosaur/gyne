@@ -1,9 +1,9 @@
 const Future = require('fluture')
 const { complement, evolve, filter, map } = require('ramda')
 
-const NetworkResource = require('../network/resource')
-const ServiceResource = require('../service/resource')
-const VolumeResource = require('../volume/resource')
+const NetworkResource = require('./network')
+const ServiceResource = require('./service')
+const VolumeResource = require('./volume')
 
 module.exports = StackResource
 

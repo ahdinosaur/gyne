@@ -7,7 +7,7 @@ const httpGet = require('simple-get')
 const { safeLoad: fromYaml } = require('js-yaml')
 const Future = require('fluture')
 
-const waterfall = require('../util/waterfall')
+const waterfall = require('../../util/waterfall')
 
 const fromJson = JSON.parse
 const fetchUrl = (url, callback) => {

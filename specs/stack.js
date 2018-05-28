@@ -1,10 +1,10 @@
 const { evolve, isNil, map, merge, pipe } = require('ramda')
 
-const Network = require('../network/spec')
-const Service = require('../service/spec')
-const Volume = require('../volume/spec')
+const Network = require('./network')
+const Service = require('./service')
+const Volume = require('./volume')
 
-const mergeConfigs = require('../spec/merge')
+const mergeSpecs = require('./util/merge')
 
 const fromConfig = pipe(
   config => {
@@ -31,7 +31,7 @@ const fromConfig = pipe(
     const { stacks = [] } = config
     const { networks, services, volumes } = config
     const stack = { networks, services, volumes }
-    return mergeConfigs([stack, ...stacks])
+    return mergeSpecs([stack, ...stacks])
   }
 )
 

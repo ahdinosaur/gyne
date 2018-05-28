@@ -1,4 +1,4 @@
-const { GenericResource } = require('../resource')
+const GenericResource = require('./util/generic')
 
 module.exports = GenericResource({
   name: 'service',
