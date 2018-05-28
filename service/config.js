@@ -3,12 +3,21 @@ const {
   validateObjectWithConstraints
 } = require('folktale-validations')
 
-module.exports = validateObjectWithConstraints({
+const validate = validateObjectWithConstraints({
   fields: [
     {
       name: 'name',
       validator: validateIsString,
       isRequired: true
+    },
+    {
+      name: 'image',
+      validator: validateIsString,
+      isRequired: true
     }
   ]
 })
+
+module.exports = {
+  validate
+}

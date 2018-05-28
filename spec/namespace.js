@@ -6,6 +6,7 @@ module.exports = {
 }
 
 function namespaceName (namespace, name) {
+  console.log('namespace', namespace, name)
   if (isNil(namespace) || isEmpty(namespace)) return name
   return `${namespace.join('__')}__${name}`
 }

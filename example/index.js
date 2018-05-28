@@ -5,12 +5,12 @@ const waterfall = require('../util/waterfall')
 
 const config = join(__dirname, './config.yml')
 
-const options = {
+const context = {
   pretty: true,
   debug: true
 }
 
-const dock = Dock(options)
+const dock = Dock(context)
 
 waterfall([
   () => dock.diff(config),

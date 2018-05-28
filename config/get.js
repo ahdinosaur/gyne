@@ -6,11 +6,8 @@ const { extname } = require('path')
 const httpGet = require('simple-get')
 const { safeLoad: fromYaml } = require('js-yaml')
 const Future = require('fluture')
-const { isFailure } = require('folktale-validations')
 
-const waterfall = require('./waterfall')
-const configValidator = require('../validators/stack')
-const createValidationError = require('./createValidationError')
+const waterfall = require('../util/waterfall')
 
 const fromJson = JSON.parse
 const fetchUrl = (url, callback) => {
@@ -20,11 +17,7 @@ const fetchUrl = (url, callback) => {
   })
 }
 
-const getConfig = waterfall([
-  readConfig,
-  Future.encase(normalizeConfig),
-  Future.encase(validateConfig)
-])
+const getConfig = waterfall([readConfig, Future.encase(normalizeConfig)])
 
 module.exports = getConfig
 
@@ -69,12 +62,4 @@ function normalizeConfig ({ type, data }) {
       // this shouldn't happen
       throw new Error(`unexpected config type: ${type}`)
   }
-}
-
-function validateConfig (config) {
-  const validation = configValidator(config)
-  if (isFailure(validation)) {
-    throw createValidationError(validation.value)
-  }
-  return validation.value
 }

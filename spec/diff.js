@@ -1,13 +1,18 @@
 const assert = require('assert')
 const {
   difference,
+  filter,
   indexBy,
   map,
+  merge,
+  pipe,
   prop,
   props,
   intersection,
   uniq
 } = require('ramda')
+
+const diffObjects = require('../util/diffObjects')
 
 module.exports = diffConfigs
 
@@ -44,8 +49,21 @@ function diffResources (resourceName, current = [], next = []) {
   const nextByName = indexByName(next)
 
   const create = props(namesToCreate, nextByName)
-  const update = props(namesToUpdate, nextByName)
   const remove = props(namesToRemove, currentByName)
+
+  const getUpdate = pipe(
+    map(name => {
+      const current = currentByName[name]
+      const next = nextByName[name]
+      const diff = diffObjects(current, next)
+      if (diff.hasChanged) {
+        return merge(diff, { next })
+      }
+      return diff
+    }),
+    filter(prop('hasChanged'))
+  )
+  const update = getUpdate(namesToUpdate)
 
   return {
     create,

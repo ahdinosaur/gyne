@@ -1,12 +1,12 @@
 const assert = require('assert')
 const Url = require('url')
-const { map, merge, isNil, tap } = require('ramda')
+const { isNil, tap } = require('ramda')
 const { isBoolean, isString } = require('ramda-adjunct')
 const Future = require('fluture')
 
-module.exports = generic
+module.exports = { GenericResource }
 
-function generic (options) {
+function GenericResource (options) {
   const { name: resourceName, hasUpdate, idField, listField } = options
 
   assert(
@@ -146,6 +146,7 @@ function generic (options) {
         .map(response => {
           return isNil(listField) ? response : response[listField]
         })
+      /*
         .chain(resources => {
           const eachResource = map(resource => {
             const { Name } = resource
@@ -153,6 +154,7 @@ function generic (options) {
           })
           return Future.parallel(8, eachResource(resources))
         })
+        */
     }
 
     function update (config, params) {

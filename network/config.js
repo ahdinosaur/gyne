@@ -3,7 +3,7 @@ const {
   validateObjectWithConstraints
 } = require('folktale-validations')
 
-module.exports = validateObjectWithConstraints({
+const validate = validateObjectWithConstraints({
   fields: [
     {
       name: 'name',
@@ -12,3 +12,7 @@ module.exports = validateObjectWithConstraints({
     }
   ]
 })
+
+module.exports = {
+  validate
+}

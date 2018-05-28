@@ -1,27 +1,17 @@
 const Future = require('fluture')
-const { map } = require('ramda')
 
-const createValidationError = require('./util/createValidationError')
-const diffConfigs = require('./config/diff')
-const Config = require('./config')
-
-const Network = require('./resources/network')
-const Service = require('./resources/service')
-const Volume = require('./resources/volume')
-
-const { Context } = require('./defaults')
-const getConfig = require('./util/getConfig')
 const withLogs = require('./util/withLogs')
-const validateContext = require('./validators/context')
+const createValidationError = require('./util/createValidationError')
+
+const diffSpecs = require('./spec/diff')
+const getConfig = require('./config/get')
+const StackSpec = require('./stack/spec')
+const StackConfig = require('./stack/config')
+const StackResource = require('./stack/resource')
+const createContext = require('./context/create')
+const validateContext = require('./context/validate')
 
 module.exports = Dock
-/*
-  default: Stack,
-  Network,
-  Service,
-  Stack,
-  Volume
-*/
 
 // returns Result<Diff>
 function Dock (context = {}) {
@@ -31,7 +21,7 @@ function Dock (context = {}) {
       throw createValidationError(value)
     },
     Success: ({ value }) => {
-      context = Context(value)
+      context = createContext(value)
     }
   })
 
@@ -44,68 +34,44 @@ function Dock (context = {}) {
   }
 
   function diff (rawConfig) {
-    return Future.parallel(Infinity, [
-      listAllResources(context),
-      getConfig(rawConfig).map(Config)
-    ]).map(([currentConfig, nextConfig]) => {
-      console.log('currentConfig', currentConfig)
-      console.log('nextConfig', nextConfig)
-      const diff = diffConfigs(currentConfig, nextConfig)
-      console.log('diff', JSON.stringify(diff, null, 2))
-      // create
-      // update
-      // remove
-      return diff
-    })
+    const futureCurrentSpec = StackResource(context)
+      .list()
+      .map(StackSpec.fromInspect)
+
+    const futureNextSpec = getConfig(rawConfig)
+      .chain(config =>
+        Future((reject, resolve) => {
+          console.log('config', config)
+          StackConfig.validate(config).matchWith({
+            Failure: ({ value }) => {
+              reject(createValidationError(value))
+            },
+            Success: ({ value }) => resolve(value)
+          })
+        })
+      )
+      .map(StackSpec.fromConfig)
+
+    return Future.parallel(Infinity, [futureCurrentSpec, futureNextSpec]).map(
+      ([currentSpec, nextSpec]) => {
+        console.log('current spec', currentSpec)
+        console.log('next spec', nextSpec)
+        const diff = diffSpecs(currentSpec, nextSpec)
+        console.log('diff', JSON.stringify(diff, null, 2))
+        // create
+        // update
+        // remove
+        return diff
+      }
+    )
   }
 
   function patch (diff) {
-    return patchResources(context)(diff)
+    // patchResources(context)(diff)
   }
 }
 
-const { complement, evolve, filter } = require('ramda')
-const pickFields = require('./util/pickFields')
-const NetworkConfig = require('./config/network')
-const ServiceConfig = require('./config/service')
-const VolumeConfig = require('./config/volume')
-
-function listAllResources (context) {
-  return Future.parallel(Infinity, [
-    Network(context).list(),
-    Service(context).list(),
-    Volume(context).list()
-  ])
-    .map(([networks, services, volumes]) => ({
-      networks,
-      services,
-      volumes
-    }))
-    .map(
-      evolve({
-        networks: filter(complement(isDefaultNetwork))
-      })
-    )
-    .map(
-      evolve({
-        networks: map(pickFields(NetworkConfig.fields)),
-        services: map(pickFields(ServiceConfig.fields)),
-        volumes: map(pickFields(VolumeConfig.fields))
-      })
-    )
-}
-
-function isDefaultNetwork (network) {
-  const { Name } = network
-  return (
-    Name === 'ingress' ||
-    Name === 'bridge' ||
-    Name === 'none' ||
-    Name === 'docker_gwbridge' ||
-    Name === 'host'
-  )
-}
-
+/*
 function patchResources (context) {
   const patchNetworks = patchResource(Network(context))
   const patchServices = patchResource(Service(context))
@@ -129,3 +95,4 @@ function patchResource (resource) {
     ])
   }
 }
+*/

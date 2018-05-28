@@ -4,9 +4,9 @@ const {
   validateObjectWithConstraints
 } = require('folktale-validations')
 
-const validateNetwork = require('./network')
-const validateService = require('./service')
-const validateVolume = require('./volume')
+const { validate: validateNetwork } = require('../network/config')
+const { validate: validateService } = require('../service/config')
+const { validate: validateVolume } = require('../volume/config')
 
 const validateStack = validateObjectWithConstraints({
   fields: [
@@ -36,4 +36,6 @@ const validateStack = validateObjectWithConstraints({
   ]
 })
 
-module.exports = validateStack
+module.exports = {
+  validate: validateStack
+}
