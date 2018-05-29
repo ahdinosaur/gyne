@@ -6,8 +6,10 @@ const waterfall = require('../util/waterfall')
 const config = join(__dirname, './config.yml')
 
 const context = {
-  pretty: true,
-  debug: true
+  log: {
+    level: 'debug'
+  },
+  pretty: true
 }
 
 const dock = Dock(context)

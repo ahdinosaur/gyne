@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 const { relative, isAbsolute } = require('path')
-const { anyPass, contains, map, pick, tap } = require('ramda')
+const { anyPass, contains, isNil, map, pick, tap } = require('ramda')
+const { isArray } = require('ramda-adjunct')
 const parseArgs = require('minimist')
 const ansi = require('ansi-escape-sequences')
 const Future = require('fluture')
@@ -16,27 +17,24 @@ const script = isAbsolute(argv[1])
   : argv[1]
 
 const USAGE = `
-  $ ${clr(script, 'bold')} ${clr('<config>', 'green')} [options]
-
-  Resources:
-
-    network
-    service
-    stack
-    volume
+  $ ${clr(script, 'bold')} ${clr('<command>', 'green')} [options]
 
   Commands:
 
-    up
+    up <config>
     down
 
   Options:
 
-    -d, --debug     include debug in log output
     -h, --help      print this usage
-    -q, --quiet     don't output any logs
+    -v, --verbose   output logs
+      (nothing) prints fatal
+      -v prints error
+      -vv prints warning
+      -vvv prints info
+      -vvvv prints debug
     --pretty        pretty print log output
-    -v, --version   print version
+    --version       print version
 
   Examples:
 
@@ -54,12 +52,11 @@ const commands = ['up', 'down']
 const isCommand = anyPass(map(contains, commands))
 const args = parseArgs(process.argv.slice(2), {
   alias: {
-    debug: 'd',
     help: 'h',
-    quiet: 'q',
-    version: 'v'
+    verbose: 'v'
   },
-  boolean: ['debug', 'help', 'quiet', 'version']
+  string: ['verbose'],
+  boolean: ['help', 'version']
 })
 ;(function main (args) {
   if (args.help) {
@@ -67,11 +64,20 @@ const args = parseArgs(process.argv.slice(2), {
   } else if (args.version) {
     console.log(require('./package.json').version)
   } else if (args._.length > 0) {
-    const context = pick(['debug', 'pretty', 'quiet'], args)
+    var context = pick(['pretty'], args)
+    context.log = { level: logLevelFromArgs(args) }
+
     const [commandName, argConfig] = args._
 
     if (!isCommand(commandName)) {
       console.log(`Unexpected command: ${commandName}\n`)
+      console.log(USAGE)
+      process.exit(1)
+      return
+    }
+
+    if (commandName === 'up' && isNil(argConfig)) {
+      console.log(`Expected config, none given.\n`)
       console.log(USAGE)
       process.exit(1)
       return
@@ -115,4 +121,23 @@ function run (gyne, config) {
 // https://github.com/choojs/bankai/blob/cae451d116f50b6915216ee804c55f703d093880/bin.js#L142-L144
 function clr (text, color) {
   return process.stdout.isTTY ? ansi.format(text, color) : text
+}
+
+function logLevelFromArgs (args) {
+  const { verbose } = args
+  const verbosity = isArray(verbose) ? verbose.length : 1
+  switch (verbosity) {
+    case 0:
+      return 'fatal'
+    case 1:
+      return 'error'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'info'
+    case 4:
+      return 'debug'
+    default:
+      return 'debug'
+  }
 }

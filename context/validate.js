@@ -10,17 +10,7 @@ const {
 module.exports = validateObjectWithConstraints({
   fields: [
     {
-      name: 'debug',
-      validator: validateIsBoolean,
-      defaultValue: false
-    },
-    {
       name: 'pretty',
-      validator: validateIsBoolean,
-      defaultValue: false
-    },
-    {
-      name: 'quiet',
       validator: validateIsBoolean,
       defaultValue: false
     },
