@@ -1,5 +1,5 @@
 {
-  "name": "longshore",
+  "name": "gyne",
   "version": "0.0.0",
   "description": "manage a swarm of Docker stacks, networks, and volumes",
   "main": "index.js",
@@ -35,15 +35,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buttcloud/longshore.git"
+    "url": "git+https://github.com/buttcloud/gyne.git"
   },
   "keywords": [],
   "author": "Mikey <michael.williams@enspiral.com> (http://dinosaur.is)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/buttcloud/longshore/issues"
+    "url": "https://github.com/buttcloud/gyne/issues"
   },
-  "homepage": "https://github.com/buttcloud/longshore#readme",
+  "homepage": "https://github.com/buttcloud/gyne#readme",
   "devDependencies": {
     "ava": "^0.25.0",
     "clarify": "^2.1.0",

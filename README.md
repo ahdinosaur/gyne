@@ -1,47 +1,38 @@
-# longshore
+# gyne
 
-[![travis](https://travis-ci.org/buttcloud/longshore.svg?branch=master)](https://travis-ci.org/buttcloud/longshore) [![codecov](https://codecov.io/gh/buttcloud/longshore/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/longshore)
+[![travis](https://travis-ci.org/buttcloud/gyne.svg?branch=master)](https://travis-ci.org/buttcloud/gyne) [![codecov](https://codecov.io/gh/buttcloud/gyne/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/gyne)
 
 _work in progress_
 
-opinionated glue to manage a Docker swarm
-
-built for [ButtCloud](http://buttcloud.org)
+`gyne` is a declarative interface to manage a Docker swarm
 
 ```shell
-# npm install --save longshore
+# npm install --save gyne
 ```
-
-## features
-
-also known as, _what we need for ButtCloud_:
-
-* able to configure fractal stacks
-* able to use remote config files
-* ensure all Docker systems are up
-* ensure one Docker sub-system is up
 
 ## cli
 
-### up
+given you have a `config.yml` that declares the complete state of your Docker swarm (including nested stacks),
 
-```shell
-longshore stack up ./example/config.json
+you run:
+
+```
+dyne config.yml
 ```
 
-### down
+first, you will be shown the diff between the inspected state of the swarm and your declared state.
 
-```shell
-longshore stack down ./example/config.json
-```
+you are given a choice to accept or decline the patch.
+
+if you accept, the Docker swarm will be updated to the declared state.
 
 ## api
 
-### `{ System } = require('longshore')`
+### `Gyne = require('gyne')`
 
-### `Stack = require('longshore').default`
+### `Gyne = require('gyne').default`
 
-### `stack = system(context)`
+### `gyne = Gyne(context)`
 
 where `context` is an optional object with:
 
@@ -52,9 +43,7 @@ where `context` is an optional object with:
 - `logStream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
 - `log`: [`pino`](https://github.com/pinojs/pino) options or instance
 
-### `stack.up(config)((err, info) => {})`
-
-### `stack.down(config)((err) => {})`
+### `gyne.diff(config) => Future<Diff>`
 
 `config` is object with:
 
@@ -64,35 +53,15 @@ where `context` is an optional object with:
 * `Services`: array of service options
 * `Stacks`: array of stack options
 
-### `{ Service } = require('longshore')`
+returns a [`fluture`](https://github.com/fluture-js/Fluture) `Future` of the diff between your given config and the current config of the swarm.
 
-### `service = Service(context)`
+### `gyne.patch(diff)`
 
-### `service.up(config)(err, info) => {})`
+returns a [`fluture`](https://github.com/fluture-js/Fluture) Future to execute the diff as a set of change operations.
 
-### `service.down(config)(err) => {})`
+## acknowledgements
 
-`config` matches [Docker API Service config](https://docs.docker.com/engine/api/v1.37/#operation/ServiceCreate)
-
-### `{ Network } = require('longshore')`
-
-### `network = Network(context)`
-
-### `network.up(config)(err, info) => {})`
-
-### `network.down(config)(err) => {})`
-
-`config` matches [Docker API Network config](https://docs.docker.com/engine/api/v1.37/#operation/NetworkCreate)
-
-### `{ Volume } = require('longshore')`
-
-### `volume = Volume(context)`
-
-### `volume.up(config)(err, info) => {})`
-
-### `volume.down(config)(err) => {})`
-
-`config` matches [Docker API Volume config](https://docs.docker.com/engine/api/v1.37/#operation/VolumeCreate)
+sponsored by [ButtCloud](http://buttcloud.org)
 
 ## license
 
