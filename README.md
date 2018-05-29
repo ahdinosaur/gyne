@@ -2,15 +2,13 @@
 
 [![travis](https://travis-ci.org/buttcloud/gyne.svg?branch=master)](https://travis-ci.org/buttcloud/gyne) [![codecov](https://codecov.io/gh/buttcloud/gyne/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/gyne)
 
-_work in progress_
-
-`gyne` is a declarative interface to manage a Docker swarm
+`gyne`, [the insect queen](https://en.wikipedia.org/wiki/Gyne), is a declarative interface to manage a Docker swarm
 
 ```shell
 # npm install --save gyne
 ```
 
-## cli
+## overview
 
 given you have a `config.yml` that declares the complete state of your Docker swarm (including nested stacks),
 
@@ -25,6 +23,37 @@ first, you will be shown the diff between the inspected state of the swarm and y
 you are given a choice to accept or decline the patch.
 
 if you accept, the Docker swarm will be updated to the declared state.
+
+## cli
+
+```
+$ gyne <command> [options]
+
+  Commands:
+
+    up <config>
+    down
+
+  Options:
+
+    -h, --help      print this usage
+    -v, --verbose   output logs
+      (nothing) prints fatal
+      -v prints error
+      -vv prints warning
+      -vvv prints info
+      -vvvv prints debug
+    --pretty        pretty print log output
+    --version       print version
+
+  Examples:
+
+  Bring up a system
+  gyne up ./example/config.yml
+
+  Bring down a system
+  gyne down
+```
 
 ## api
 
