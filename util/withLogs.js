@@ -1,16 +1,14 @@
-const step = require('callstep')
+const tap = require('./tap')
+const waterfall = require('./waterfall')
 
 module.exports = withLogs
 
 function withLogs ({ log, method }) {
-  return callstep => {
-    return config => {
-      return step.waterfall([
-        step.of(config),
-        step.tap(config => log.debug(`${method} call`, { config })),
-        callstep,
-        step.tap(result => log.debug(`${method} result`, { result }))
-      ])
-    }
+  return function wrappedWithLogs (step) {
+    return waterfall([
+      tap(config => log.debug(`${method} call`, { config })),
+      step,
+      tap(result => log.debug(`${method} result`, { result }))
+    ])
   }
 }

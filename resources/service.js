@@ -1,6 +1,6 @@
-const generic = require('./generic')
+const GenericResource = require('./util/generic')
 
-module.exports = generic({
+module.exports = GenericResource({
   name: 'service',
   hasUpdate: true,
   idField: 'ID'

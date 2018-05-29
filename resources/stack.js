@@ -1,84 +1,66 @@
-const { assign, isNil } = require('lodash')
-const step = require('callstep')
+const Future = require('fluture')
+const { complement, evolve, filter, map } = require('ramda')
 
-const Network = require('./network')
-const Volume = require('./volume')
-const Service = require('./service')
-const { Context } = require('../defaults')
-const wrapMethod = require('../util/wrapMethod')
+const NetworkResource = require('./network')
+const ServiceResource = require('./service')
+const VolumeResource = require('./volume')
 
-module.exports = Stack
+module.exports = StackResource
 
-function Stack (context = {}) {
-  context = Context(context)
-
-  const { log } = context
+function StackResource (context) {
+  const networkResource = NetworkResource(context)
+  const serviceResource = ServiceResource(context)
+  const volumeResource = VolumeResource(context)
 
   return {
-    up: wrapMethod({ log, method: `stack:up` })(up),
-    down: wrapMethod({ log, method: `stack:down` })(down)
+    list,
+    patch
   }
 
-  function up (config) {
-    const { networks, stacks, services, volumes } = targetChildResources(
-      context,
-      config,
-      'up'
-    )
-    return step.series([
-      step.parallel([...networks, ...volumes]),
-      step.parallel([...services, ...stacks])
+  function list () {
+    return Future.parallel(Infinity, [
+      networkResource.list(),
+      serviceResource.list(),
+      volumeResource.list()
     ])
+      .map(([networks, services, volumes]) => ({
+        networks,
+        services,
+        volumes
+      }))
+      .map(
+        evolve({
+          networks: filter(complement(isDefaultNetwork))
+        })
+      )
   }
 
-  function down (config) {
-    const { networks, stacks, services, volumes } = targetChildResources(
-      context,
-      config,
-      'down'
-    )
-    return step.series([
-      step.parallel([...networks, ...volumes]),
-      step.parallel([...services, ...stacks])
+  function patch (diff) {
+    return Future.parallel(Infinity, [
+      patchResource(networkResource)(diff.networks),
+      patchResource(serviceResource)(diff.services),
+      patchResource(volumeResource)(diff.volumes)
     ])
   }
 }
 
-function targetChildResources (context, config = {}, command) {
-  const { Name: name } = config
+function isDefaultNetwork (network) {
+  const { Name } = network
+  return (
+    Name === 'ingress' ||
+    Name === 'bridge' ||
+    Name === 'none' ||
+    Name === 'docker_gwbridge' ||
+    Name === 'host'
+  )
+}
 
-  if (isNil(context.namespace)) {
-    context.namespace = name ? [name] : []
-  }
-
-  var {
-    Networks: networks = [],
-    Stacks: stacks = [],
-    Services: services = [],
-    Volumes: volumes = []
-  } = config
-
-  networks = networks.map(network => {
-    return Network(context)[command](network)
-  })
-  volumes = volumes.map(volume => {
-    return Volume(context)[command](volume)
-  })
-  services = services.map(service => {
-    return Service(context)[command](service)
-  })
-
-  stacks = stacks.map(stack => {
-    const { Name: name } = stack
-    const namespace = [...context.namespace, name]
-    const nextContext = assign({}, context, { namespace })
-    return Stack(nextContext)[command](stack)
-  })
-
-  return {
-    networks,
-    stacks,
-    services,
-    volumes
+function patchResource (resource) {
+  return diff => {
+    return Future.parallel(10, [
+      ...map(resource.create, diff.create),
+      ...map(resource.update, diff.update),
+      ...map(resource.remove, diff.remove)
+    ])
   }
 }

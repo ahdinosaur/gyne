@@ -1,19 +1,28 @@
 const { join } = require('path')
-const step = require('callstep')
 
-const { Stack } = require('../')
+const Dock = require('../')
+const waterfall = require('../util/waterfall')
 
-const config = join(__dirname, './config.json')
-const stack = Stack({
-  pretty: true,
-  debug: true
-})
+const config = join(__dirname, './config.yml')
 
-step.series([
-  stack.up(config),
-  stack.up(config),
-  stack.down(config),
-  stack.down(config)
-])(err => {
-  if (err) throw err
-})
+const context = {
+  log: {
+    level: 'debug'
+  },
+  pretty: true
+}
+
+const dock = Dock(context)
+
+waterfall([
+  () => dock.diff(config),
+  diff => {
+    console.log('up diff', JSON.stringify(diff, null, 2))
+    return dock.patch(diff)
+  },
+  () => dock.diff({}),
+  diff => {
+    console.log('down diff', JSON.stringify(diff, null, 2))
+    return dock.patch(diff)
+  }
+])().fork(console.error, () => console.log('done'))

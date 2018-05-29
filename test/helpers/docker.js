@@ -1,5 +1,5 @@
 const DockerApi = require('docker-remote-api')
-const { assign, pick } = require('lodash')
+const { pick } = require('ramda')
 
 module.exports = MockDockerApi
 
@@ -9,17 +9,12 @@ function MockDockerApi (options = {}) {
   this.handleRequest = options.handleRequest || noop
 }
 
-assign(
+Object.assign(
   MockDockerApi.prototype,
-  pick(DockerApi.prototype, [
-    'type',
-    'get',
-    'put',
-    'post',
-    'head',
-    'del',
-    'delete'
-  ])
+  pick(
+    ['type', 'get', 'put', 'post', 'head', 'del', 'delete'],
+    DockerApi.prototype
+  )
 )
 
 MockDockerApi.prototype.request = function (method, path, options, callback) {
