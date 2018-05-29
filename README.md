@@ -1,4 +1,4 @@
-# gyne
+# [gyne](https://en.wikipedia.org/wiki/Gyne) 🐝🐜
 
 [![travis](https://travis-ci.org/buttcloud/gyne.svg?branch=master)](https://travis-ci.org/buttcloud/gyne) [![codecov](https://codecov.io/gh/buttcloud/gyne/branch/master/graph/badge.svg)](https://codecov.io/gh/buttcloud/gyne)
 

@@ -67,6 +67,7 @@
     "minimist": "^1.2.0",
     "pino": "^4.16.1",
     "pino-colada": "^1.4.4",
+    "prompt-confirm": "^2.0.0",
     "pumpify": "^1.4.0",
     "ramda": "^0.25.0",
     "ramda-adjunct": "^2.8.0",

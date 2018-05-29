@@ -1,29 +1,22 @@
 #!/usr/bin/env node
 
 const { relative, isAbsolute } = require('path')
-const { isNil, pick } = require('ramda')
+const { anyPass, contains, map, pick, tap } = require('ramda')
 const parseArgs = require('minimist')
 const ansi = require('ansi-escape-sequences')
+const Future = require('fluture')
+const Confirm = require('prompt-confirm')
+const { safeDump: toYaml } = require('js-yaml')
 
-const { Network, Service, Stack, Volume } = require('./')
+const Gyne = require('./')
 
 const { argv, cwd } = process
 const script = isAbsolute(argv[1])
   ? `node ./${relative(cwd(), argv[1])}`
   : argv[1]
 
-const resources = {
-  network: Network,
-  service: Service,
-  stack: Stack,
-  volume: Volume
-}
-
 const USAGE = `
-  $ ${clr(script, 'bold')} ${clr(
-  '<resource> <command> <config>',
-  'green'
-)} [options]
+  $ ${clr(script, 'bold')} ${clr('<config>', 'green')} [options]
 
   Resources:
 
@@ -47,21 +40,23 @@ const USAGE = `
 
   Examples:
 
-  Bring up a stack
-  ${clr(`${script} stack up ./example/config.json`, 'cyan')}
+  Bring up a system
+  ${clr(`${script} up ./example/config.yml`, 'cyan')}
 
-  Tear down a stack
-  ${clr(`${script} stack down ./example/config.json`, 'cyan')}
+  Bring down a system
+  ${clr(`${script} down`, 'cyan')}
 
 `
   .replace(/\n$/, '')
   .replace(/^\n/, '')
 
+const commands = ['up', 'down']
+const isCommand = anyPass(map(contains, commands))
 const args = parseArgs(process.argv.slice(2), {
   alias: {
     debug: 'd',
     help: 'h',
-    quiet: 'p',
+    quiet: 'q',
     version: 'v'
   },
   boolean: ['debug', 'help', 'quiet', 'version']
@@ -71,39 +66,51 @@ const args = parseArgs(process.argv.slice(2), {
     console.log(USAGE)
   } else if (args.version) {
     console.log(require('./package.json').version)
-  } else if (args._.length === 3) {
-    const [resourceName, commandName, config] = args._
-    const Resource = resources[resourceName]
+  } else if (args._.length > 0) {
+    const context = pick(['debug', 'pretty', 'quiet'], args)
+    const [commandName, argConfig] = args._
 
-    if (isNil(Resource)) {
-      console.log(`Unexpected resource: ${resourceName}\n`)
-      console.log(USAGE)
-      process.exit(1)
-      return
-    }
-
-    const context = pick(['debug', 'pretty'], args)
-
-    const resource = Resource(context)
-    const command = resource[commandName]
-
-    if (isNil(command)) {
+    if (!isCommand(commandName)) {
       console.log(`Unexpected command: ${commandName}\n`)
       console.log(USAGE)
       process.exit(1)
       return
     }
 
-    const continuable = command(config)
+    const gyne = Gyne(context)
 
-    continuable(err => {
-      if (err) throw err
-    })
+    const config = commandName === 'up' ? argConfig : {}
+
+    run(gyne, config).fork(
+      err => {
+        throw err
+      },
+      () => console.log('done')
+    )
   } else {
     console.log(USAGE)
     process.exit(1)
   }
 })(args)
+
+function run (gyne, config) {
+  return gyne
+    .diff(config)
+    .map(
+      tap(diff => {
+        console.log(toYaml({ diff }))
+      })
+    )
+    .chain(diff => {
+      const prompt = new Confirm(
+        'Do you want to patch your system with these changes?'
+      )
+      const runPrompt = Future.encaseP(() => prompt.run())
+      return runPrompt().chain(shouldRun => {
+        return shouldRun ? gyne.patch(diff) : Future.of(null)
+      })
+    })
+}
 
 // https://github.com/choojs/bankai/blob/cae451d116f50b6915216ee804c55f703d093880/bin.js#L142-L144
 function clr (text, color) {

@@ -12,9 +12,9 @@ const StackSpec = require('./specs/stack')
 const StackConfig = require('./configs/stack')
 const StackResource = require('./resources/stack')
 
-module.exports = Dock
+module.exports = Gyne
 
-function Dock (context = {}) {
+function Gyne (context = {}) {
   // validate context
   validateContext(context).matchWith({
     Failure: ({ value }) => {

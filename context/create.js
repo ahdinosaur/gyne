@@ -6,12 +6,19 @@ const pumpify = require('pumpify')
 const DockerApi = require('../util/docker')
 
 function createContext (context) {
-  var { debug = false, docker, log, logStream, pretty = false } = context
+  var {
+    debug = false,
+    docker,
+    log,
+    logStream,
+    pretty = false,
+    quiet = false
+  } = context
 
   if (isNil(log) || isNil(log.pino)) {
     if (isNil(log)) log = {}
     if (isNil(log.level)) {
-      log.level = debug ? 'debug' : 'info'
+      log.level = quiet ? 'fatal' : debug ? 'debug' : 'info'
     }
     logStream = isNil(logStream)
       ? pretty ? pumpify(prettyLogs(), process.stdout) : process.stdout

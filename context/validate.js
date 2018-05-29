@@ -20,6 +20,11 @@ module.exports = validateObjectWithConstraints({
       defaultValue: false
     },
     {
+      name: 'quiet',
+      validator: validateIsBoolean,
+      defaultValue: false
+    },
+    {
       name: 'docker',
       validator: validateIsObject,
       value: {
