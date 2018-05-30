@@ -1,4 +1,4 @@
-const DockerApi = require('docker-remote-api')
+const DockerApi = require('../../util/docker')
 const { pick } = require('ramda')
 
 module.exports = MockDockerApi
@@ -18,12 +18,7 @@ Object.assign(
 )
 
 MockDockerApi.prototype.request = function (method, path, options, callback) {
-  if (typeof options === 'function') {
-    callback = options
-    options = null
-  }
-
-  this.handleRequest(method, path, options, callback)
+  this.handleRequest(method, path, options).done(callback)
 }
 
 function noop () {}

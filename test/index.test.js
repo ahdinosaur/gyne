@@ -1,29 +1,33 @@
 const test = require('ava')
 const { join } = require('path')
-// const Docker = require('docker-remote-api')
-const step = require('callstep')
+// const Docker = require('../util/docker')
+const Future = require('fluture')
 
-const { Stack } = require('../')
-const config = join(__dirname, '../example/config.json')
+const Gyne = require('../')
+const config = join(__dirname, '../example/config.yml')
 
-test.cb('stack integration', t => {
-  const stack = Stack({
+test('gyne integration', t => {
+  const gyne = Gyne({
     log: {
       level: 'fatal'
     }
   })
   // const docker = Docker()
 
-  step.series([
-    stack.up(config),
-    cb => {
+  return gyne
+    .diff(config)
+    .chain(diff => gyne.patch(diff))
+    .chain(() => {
+      t.pass()
       // TODO test stack is up
-      cb()
-    },
-    stack.down(config),
-    cb => {
+      return Future.of(null)
+    })
+    .chain(() => gyne.diff({}))
+    .chain(diff => gyne.patch(diff))
+    .chain(() => {
+      t.pass()
       // TODO test stack is down
-      cb()
-    }
-  ])(t.end)
+      return Future.of(null)
+    })
+    .promise()
 })

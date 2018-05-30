@@ -1,11 +1,13 @@
 const test = require('ava')
+const Future = require('fluture')
 
 const MockDockerApi = require('../helpers/docker')
-const { DOCKER_API_VERSION } = require('../../defaults')
+const Context = require('../../context/create')
+const { DOCKER_API_VERSION } = require('../../util/docker')
 
 const Network = require('../../resources/network')
 
-test.cb('network.create happy path', t => {
+test('network.create happy path', t => {
   const givenConfig = {
     name: 'test_network'
   }
@@ -21,22 +23,23 @@ test.cb('network.create happy path', t => {
   }
   const expectedResult = givenResponse.Id
 
-  function handleRequest (method, path, options, callback) {
+  function handleRequest (method, path, options) {
     t.is(method, expectedMethod)
     t.is(path, expectedPath)
     t.deepEqual(options, expectedOptions)
-    callback(null, givenResponse)
+    return Future.of(givenResponse)
   }
 
-  const network = Network({
-    docker: MockDockerApi({ handleRequest }),
-    log: {
-      level: 'fatal'
-    }
-  })
-  const continuable = network.create(givenConfig)
-  continuable((err, result) => {
+  const network = Network(
+    Context({
+      docker: MockDockerApi({ handleRequest }),
+      log: {
+        level: 'fatal'
+      }
+    })
+  )
+
+  return network.create(givenConfig).value(result => {
     t.is(result, expectedResult)
-    t.end(err)
   })
 })

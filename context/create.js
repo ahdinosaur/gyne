@@ -17,8 +17,6 @@ function createContext (context) {
   })
 }
 
-const DEFAULT_DOCKER_VERSION = 'v1.37'
-
 function createLog (log = {}) {
   if (log.pino) return log
 
@@ -31,7 +29,6 @@ function createLog (log = {}) {
 
 function createDocker (docker = {}) {
   if (docker.type === 'docker-remote-api') return docker
-  if (isNil(docker.version)) docker.version = DEFAULT_DOCKER_VERSION
   return DockerApi(docker)
 }
 

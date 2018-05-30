@@ -2,14 +2,17 @@ const { pick } = require('ramda')
 const Future = require('fluture')
 const DockerBaseApi = require('docker-remote-api')
 
+const DEFAULT_DOCKER_VERSION = 'v1.37'
+
 module.exports = DockerApi
+module.exports.DEFAULT_DOCKER_VERSION = DEFAULT_DOCKER_VERSION
 
 function DockerApi (options = {}) {
   if (!(this instanceof DockerApi)) return new DockerApi(options)
 
   DockerBaseApi.call(this, options)
 
-  this.version = options.version
+  this.version = options.version || DEFAULT_DOCKER_VERSION
 }
 
 DockerApi.prototype = Object.create(DockerBaseApi.prototype)
