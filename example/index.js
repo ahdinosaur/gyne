@@ -7,9 +7,9 @@ const config = join(__dirname, './config.yml')
 
 const context = {
   log: {
-    level: 'debug'
-  },
-  pretty: true
+    level: 'debug',
+    pretty: true
+  }
 }
 
 const dock = Dock(context)

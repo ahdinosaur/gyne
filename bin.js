@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { relative, isAbsolute } = require('path')
-const { anyPass, contains, isNil, map, pick, tap } = require('ramda')
+const { anyPass, contains, isNil, map, tap } = require('ramda')
 const { isArray } = require('ramda-adjunct')
 const parseArgs = require('minimist')
 const ansi = require('ansi-escape-sequences')
@@ -56,7 +56,7 @@ const args = parseArgs(process.argv.slice(2), {
     verbose: 'v'
   },
   string: ['verbose'],
-  boolean: ['help', 'version']
+  boolean: ['help', 'version', 'pretty']
 })
 ;(function main (args) {
   if (args.help) {
@@ -64,8 +64,12 @@ const args = parseArgs(process.argv.slice(2), {
   } else if (args.version) {
     console.log(require('./package.json').version)
   } else if (args._.length > 0) {
-    var context = pick(['pretty'], args)
-    context.log = { level: logLevelFromArgs(args) }
+    const context = {
+      log: {
+        pretty: args.pretty,
+        level: logLevelFromArgs(args)
+      }
+    }
 
     const [commandName, argConfig] = args._
 

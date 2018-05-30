@@ -10,11 +10,6 @@ const {
 module.exports = validateObjectWithConstraints({
   fields: [
     {
-      name: 'pretty',
-      validator: validateIsBoolean,
-      defaultValue: false
-    },
-    {
       name: 'docker',
       validator: validateIsObject,
       value: {
@@ -38,6 +33,11 @@ module.exports = validateObjectWithConstraints({
           {
             name: 'level',
             validator: validateIsString
+          },
+          {
+            name: 'pretty',
+            validator: validateIsBoolean,
+            defaultValue: false
           },
           {
             name: 'stream',

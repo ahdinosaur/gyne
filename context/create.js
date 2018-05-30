@@ -1,4 +1,4 @@
-const { isNil } = require('ramda')
+const { isNil, merge } = require('ramda')
 const Log = require('pino')
 const prettyLogs = require('pino-colada')
 const pumpify = require('pumpify')
@@ -6,36 +6,28 @@ const pumpify = require('pumpify')
 const DockerApi = require('../util/docker')
 
 function createContext (context) {
-  var {
-    debug = false,
-    docker,
-    log,
-    logStream,
-    pretty = false,
-    quiet = false
-  } = context
+  var { docker, log } = context
 
-  if (isNil(log) || isNil(log.pino)) {
-    if (isNil(log)) log = {}
-    if (isNil(log.level)) {
-      log.level = quiet ? 'fatal' : debug ? 'debug' : 'info'
-    }
-    logStream = isNil(logStream)
-      ? pretty ? pumpify(prettyLogs(), process.stdout) : process.stdout
-      : logStream
-    log = Log(log, logStream)
-  }
-
+  log = createLog(log)
   docker = createDocker(docker)
 
-  return Object.assign({}, context, {
+  return merge(context, {
     log,
-    logStream,
     docker
   })
 }
 
 const DEFAULT_DOCKER_VERSION = 'v1.37'
+
+function createLog (log = {}) {
+  if (log.pino) return log
+
+  const logStream = isNil(log.stream)
+    ? log.pretty ? pumpify(prettyLogs(), process.stdout) : process.stdout
+    : log.stream
+
+  return Log(log, logStream)
+}
 
 function createDocker (docker = {}) {
   if (docker.type === 'docker-remote-api') return docker

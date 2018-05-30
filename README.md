@@ -5,7 +5,7 @@
 `gyne`, [the insect queen](https://en.wikipedia.org/wiki/Gyne), is a declarative interface to manage a Docker swarm
 
 ```shell
-# npm install --save gyne
+npm install --save gyne
 ```
 
 ## overview
@@ -66,11 +66,10 @@ $ gyne <command> [options]
 where `context` is an optional object with:
 
 * `docker`: [`docker-remote-api`](https://github.com/mafintosh/docker-remote-api) options or instance
-
-- `debug`: whether to include debug in logs (default: `false`)
-- `pretty`: whether to pretty print logs (default: `false`)
-- `logStream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
-- `log`: [`pino`](https://github.com/pinojs/pino) options or instance
+* `log`: [`pino`](https://github.com/pinojs/pino) options or instance
+  * `level`: what level of logs to print (default: `info`)
+  * `pretty`: whether to pretty print logs (default: `false`)
+  * `stream`: where to stream logs, (default: if `pretty`, then [`pino-colada`](https://github.com/lrlna/pino-colada), else `process.stdout`)
 
 ### `gyne.diff(config) => Future<Diff>`
 
@@ -86,7 +85,7 @@ returns a [`fluture`](https://github.com/fluture-js/Fluture) `Future` of the dif
 
 ### `gyne.patch(diff)`
 
-returns a [`fluture`](https://github.com/fluture-js/Fluture) Future to execute the diff as a set of change operations.
+returns a [`fluture`](https://github.com/fluture-js/Fluture) `Future` to execute the diff as a set of change operations.
 
 ## acknowledgements
 
