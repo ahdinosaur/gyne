@@ -38,9 +38,8 @@ function StackResource (context) {
   function patch (diff) {
     return Future.parallel(Infinity, [
       patchResource(networkResource)(diff.networks),
-      patchResource(serviceResource)(diff.services),
       patchResource(volumeResource)(diff.volumes)
-    ])
+    ]).chain(() => patchResource(serviceResource)(diff.services))
   }
 }
 

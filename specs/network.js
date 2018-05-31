@@ -1,4 +1,4 @@
-const { apply, defaultTo, pipe, props } = require('ramda')
+const { apply, defaultTo, pipe, prop, props } = require('ramda')
 
 const Namespace = require('./util/namespace')
 const populateFields = require('../util/populateFields')
@@ -10,12 +10,14 @@ const fromConfig = populateFields({
     props(['namespace', 'labels']),
     apply(Namespace.labels),
     defaultTo({})
-  )
+  ),
+  Driver: prop('driver')
 })
 
 const fromInspect = pickFields({
   Name: true,
-  Labels: true
+  Labels: true,
+  Driver: true
 })
 
 module.exports = {

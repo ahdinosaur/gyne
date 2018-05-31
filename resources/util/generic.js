@@ -175,7 +175,7 @@ function GenericResource (options) {
             config,
             params
           })
-          docker.post(url, {
+          return docker.post(url, {
             json: config
           })
         })

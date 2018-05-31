@@ -1,14 +1,15 @@
+const { clone } = require('ramda')
 const {
-  validateIsArrayOf,
+  validateIsArray,
   validateIsString,
   validateObjectWithConstraints
 } = require('folktale-validations')
 
-const { validate: validateNetwork } = require('./network')
-const { validate: validateService } = require('./service')
-const { validate: validateVolume } = require('./volume')
+const { constraints: networkConstraints } = require('./network')
+const { constraints: serviceConstraints } = require('./service')
+const { constraints: volumeConstraints } = require('./volume')
 
-const validateStack = validateObjectWithConstraints({
+const layerConstraints = {
   fields: [
     {
       name: 'name',
@@ -16,26 +17,32 @@ const validateStack = validateObjectWithConstraints({
     },
     {
       name: 'networks',
-      validator: validateIsArrayOf(validateNetwork)
+      validator: validateIsArray,
+      children: networkConstraints
     },
     {
       name: 'services',
-      validator: validateIsArrayOf(validateService)
+      validator: validateIsArray,
+      children: serviceConstraints
     },
     {
       name: 'volumes',
-      validator: validateIsArrayOf(validateVolume)
+      validator: validateIsArray,
+      children: volumeConstraints
     },
     {
       name: 'stacks',
-      validator: validateIsArrayOf((...args) => {
-        // save against circular dependency
-        return validateStack(...args)
-      })
+      validator: validateIsArray
     }
   ]
-})
+}
+
+// fractal stacks! (3 levels)
+var constraints = clone(layerConstraints)
+constraints.fields[4].children = clone(layerConstraints)
+constraints.fields[4].children.fields[4].children = clone(layerConstraints)
 
 module.exports = {
-  validate: validateStack
+  constraints,
+  validate: validateObjectWithConstraints(constraints)
 }
