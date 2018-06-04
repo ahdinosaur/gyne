@@ -1,7 +1,7 @@
 // oops this is a copy of `R.applySpec`
 
-const { curry, filter, isNil, pipe, reduce, toPairs } = require('ramda')
-const { isFunction } = require('ramda-adjunct')
+const { curry, filter, pipe, reduce, toPairs } = require('ramda')
+const { isFunction, isNotNil } = require('ramda-adjunct')
 
 const populateFields = curry((fields, object) => {
   return pipe(
@@ -13,7 +13,7 @@ const populateFields = curry((fields, object) => {
       sofar[nextKey] = value
       return sofar
     }, {}),
-    filter(isNil)
+    filter(isNotNil)
   )(fields)
 })
 

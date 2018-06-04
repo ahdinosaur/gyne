@@ -30,11 +30,13 @@ function GenericResource (options) {
     const { docker, log } = context
 
     return {
+      name: resourceName,
       create,
       down,
       inspect,
       list,
       up,
+      // TODO implement update using remove and create
       update: hasUpdate ? update : () => Future.of(null),
       remove
     }

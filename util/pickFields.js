@@ -3,7 +3,6 @@ const {
   filter,
   keys,
   lensProp,
-  isNil,
   map,
   over,
   path,
@@ -13,7 +12,7 @@ const {
   uncurryN
 } = require('ramda')
 
-const { isArray, isPlainObj } = require('ramda-adjunct')
+const { isArray, isNotNil, isPlainObj } = require('ramda-adjunct')
 
 // pick all keys in fields
 // for nested field, recurse over prop lens
@@ -42,7 +41,7 @@ const pickFields = uncurryN(2, fields => {
     })
   )(fields)
 
-  return pipe(pickKeys, ...pickNests, ...pickChilds, filter(isNil))
+  return pipe(pickKeys, ...pickNests, ...pickChilds, filter(isNotNil))
 })
 
 module.exports = pickFields

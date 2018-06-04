@@ -33,6 +33,8 @@ function diffResources (resourceName, current = [], next = []) {
   const currentNames = getNames(current)
   const nextNames = getNames(next)
 
+  console.log('nextNames', nextNames)
+
   assertNoDuplicateNames(
     currentNames,
     `expected current ${resourceName} names to have no duplicates`

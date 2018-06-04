@@ -1,5 +1,5 @@
 const Future = require('fluture')
-const { complement, evolve, filter, map } = require('ramda')
+const { complement, evolve, filter, map, reduce } = require('ramda')
 
 const NetworkResource = require('./network')
 const ServiceResource = require('./service')
@@ -35,11 +35,20 @@ function StackResource (context) {
       )
   }
 
+  // 1. remove services
+  // 2. create, remove, update volumes and networks
+  // 3. create, update services
   function patch (diff) {
-    return Future.parallel(Infinity, [
-      patchResource(networkResource)(diff.networks),
-      patchResource(volumeResource)(diff.volumes)
-    ]).chain(() => patchResource(serviceResource)(diff.services))
+    return patchResource(serviceResource, ['remove'])(diff)
+      .chain(() => {
+        return Future.parallel(2, [
+          patchResource(networkResource, ['create', 'update', 'remove'])(diff),
+          patchResource(volumeResource, ['create', 'update', 'remove'])(diff)
+        ])
+      })
+      .chain(() => {
+        return patchResource(serviceResource, ['create', 'update'])(diff)
+      })
   }
 }
 
@@ -54,12 +63,18 @@ function isDefaultNetwork (network) {
   )
 }
 
-function patchResource (resource) {
+function patchResource (resource, actions) {
+  const resourceKey = `${resource.name}s`
+
   return diff => {
-    return Future.parallel(10, [
-      ...map(resource.create, diff.create),
-      ...map(resource.update, diff.update),
-      ...map(resource.remove, diff.remove)
-    ])
+    const resourceDiff = diff[resourceKey]
+    const futures = reduce(
+      (sofar, action) => {
+        return [...sofar, ...map(resource[action], resourceDiff[action])]
+      },
+      [],
+      actions
+    )
+    return Future.parallel(10, futures)
   }
 }

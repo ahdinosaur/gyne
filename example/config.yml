@@ -42,6 +42,7 @@ stacks:
   - name: dyne-stack
     networks:
       - name: network
+        driver: overlay
     volumes:
       - name: volume
     services:

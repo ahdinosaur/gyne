@@ -53,6 +53,10 @@ function Gyne (context = {}) {
 
     return Future.parallel(Infinity, [futureCurrentSpec, futureNextSpec]).map(
       ([currentSpec, nextSpec]) => {
+        log.info({
+          current: currentSpec,
+          next: nextSpec
+        })
         return diffSpecs(currentSpec, nextSpec)
       }
     )
