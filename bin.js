@@ -108,7 +108,7 @@ function run (gyne, config) {
     .diff(config)
     .map(
       tap(diff => {
-        console.log(toYaml({ diff }))
+        console.log(toYaml({ diff }, { skipInvalid: true }))
       })
     )
     .chain(diff => {

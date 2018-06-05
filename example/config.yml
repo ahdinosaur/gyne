@@ -1,16 +1,73 @@
 volumes:
-  - name: test-up-volume
+  - name: gyne-volume
 networks:
-  - name: test-up-network
+  - name: gyne-network
+    driver: overlay
 services:
-  - name: test-up-service
+  - name: gyne-service
     image: nginx:alpine
+    labels:
+      traefik.enable: true
+      traefik.backend: gyne-service
+      traefik.port: 80
+      traefik.frontend.rule: Host:service.example.com
+      traefik.docker.network: gyne-network
+    networks:
+      - name: gyne-network
+        is_external: true
 stacks:
-  - name: test-up-stack
+  - name: gyne-webproxy
+    services:
+      - name: gyne-webproxy
+        image: traefik:1.5
+        args:
+          - "--api"
+          - "--docker"
+          - "--docker.swarmmode"
+          - "--docker.domain=example.com"
+          - "--docker.exposedbydefault=false"
+          - "--docker.watch"
+        volumes:
+          - type: bind
+            source: /var/run/docker.sock
+            target: /var/run/docker.sock
+            is_read_only: true
+        ports:
+          - target: 80
+            published: 4000
+            mode: host
+        placement:
+          constraints:
+            - node.role == manager
+        restart_policy:
+          condition: on-failure
+        networks:
+          - name: gyne-network
+            is_external: true
+  - name: gyne-stack
     networks:
       - name: network
+        driver: overlay
     volumes:
       - name: volume
     services:
-      - name: service
+      - name: viz
         image: dockersamples/visualizer
+        volumes:
+          - type: bind
+            source: /var/run/docker.sock
+            target: /var/run/docker.sock
+            is_read_only: true
+        labels:
+          traefik.enable: true
+          traefik.backend: gyne-stack__viz
+          traefik.port: 8080
+          traefik.frontend.rule: Host:viz.example.com
+          traefik.docker.network: gyne-network
+        networks:
+          - name: gyne-network
+            is_external: true
+          - name: network
+        placement:
+          constraints:
+            - node.role == manager

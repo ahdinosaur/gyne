@@ -1,6 +1,6 @@
 const assert = require('assert')
 const Url = require('url')
-const { defaultTo, isNil, tap } = require('ramda')
+const { defaultTo, isNil, map, tap } = require('ramda')
 const { isBoolean, isString } = require('ramda-adjunct')
 const Future = require('fluture')
 
@@ -30,11 +30,13 @@ function GenericResource (options) {
     const { docker, log } = context
 
     return {
+      name: resourceName,
       create,
       down,
       inspect,
       list,
       up,
+      // TODO implement update using remove and create
       update: hasUpdate ? update : () => Future.of(null),
       remove
     }
@@ -101,21 +103,21 @@ function GenericResource (options) {
     function inspect (config) {
       const { Name: name } = config
 
-      log.info(`Inspecting ${resourceName}: ${name}`, {
+      const id = isNil(name) ? getId(config) : name
+
+      log.info(`Inspecting ${resourceName}: ${id}`, {
         action: `${resourceName}:inspect:before`,
         config
       })
 
       return docker
-        .get(`/${resourceName}s/${name}`, {
+        .get(`/${resourceName}s/${id}`, {
           json: true
         })
         .bimap(
-          tap(err =>
-            log.error(`Error inspecting ${resourceName}: ${name}`, err)
-          ),
+          tap(err => log.error(`Error inspecting ${resourceName}: ${id}`, err)),
           tap(response => {
-            log.info(`Inspected ${resourceName}: ${name}`, {
+            log.info(`Inspected ${resourceName}: ${id}`, {
               action: `${resourceName}:inspect:after`,
               config,
               response
@@ -147,15 +149,10 @@ function GenericResource (options) {
           return isNil(listField) ? response : response[listField]
         })
         .map(defaultTo([]))
-      /*
         .chain(resources => {
-          const eachResource = map(resource => {
-            const { Name } = resource
-            return inspect(resource).map(merge({ Name }))
-          })
+          const eachResource = map(inspect)
           return Future.parallel(8, eachResource(resources))
         })
-        */
     }
 
     function update (config) {
@@ -175,7 +172,7 @@ function GenericResource (options) {
             config,
             params
           })
-          docker.post(url, {
+          return docker.post(url, {
             json: config
           })
         })
