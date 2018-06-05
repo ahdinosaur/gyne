@@ -3,7 +3,9 @@ const {
   both,
   defaultTo,
   equals,
+  identity,
   ifElse,
+  isNil,
   map,
   merge,
   not,
@@ -19,6 +21,8 @@ const populateFields = require('../util/populateFields')
 const pickFields = require('../util/pickFields')
 const coerceString = require('../util/coerceString')
 
+const coerceArray = pipe(ifElse(isNil, identity, ensureArray))
+
 const fromConfig = populateFields({
   Name: pipe(props(['namespace', 'name']), apply(Namespace.name)),
   Labels: pipe(
@@ -30,8 +34,8 @@ const fromConfig = populateFields({
   TaskTemplate: {
     ContainerSpec: {
       Image: prop('image'),
-      Command: prop('command'),
-      Args: prop('args'),
+      Command: pipe(prop('command'), coerceArray),
+      Args: pipe(prop('args'), coerceArray),
       Env: prop('env'),
       Mounts: value =>
         pipe(
@@ -115,6 +119,7 @@ const fromInspect = pipe(
       ContainerSpec: {
         Image: true,
         Command: true,
+        Args: true,
         Env: true,
         Mounts: [
           {

@@ -35,6 +35,13 @@ const constraints = {
       )
     },
     {
+      name: 'args',
+      validator: orValidator(
+        validateIsString,
+        validateIsArrayOf(validateIsString)
+      )
+    },
+    {
       name: 'volumes',
       validator: validateIsArray,
       children: {

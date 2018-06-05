@@ -36,7 +36,7 @@ function Gyne (context = {}) {
 
   // returns Future<Diff>
   function diff (rawConfig) {
-    const futureCurrentSpec = stackResource.list().map(StackSpec.fromInspect)
+    const futureCurrentSpec = stackResource.list()
 
     const futureNextSpec = getConfig(rawConfig)
       .chain(config =>
@@ -52,11 +52,17 @@ function Gyne (context = {}) {
       .map(StackSpec.fromConfig)
 
     return Future.parallel(Infinity, [futureCurrentSpec, futureNextSpec]).map(
-      ([currentSpec, nextSpec]) => {
-        log.info({
+      ([currentRawSpec, nextSpec]) => {
+        // TODO where should this happen?
+        fixNetworkIds(currentRawSpec, nextSpec)
+
+        const currentSpec = StackSpec.fromInspect(currentRawSpec)
+
+        log.info('Ready to diff specs', {
           current: currentSpec,
           next: nextSpec
         })
+
         return diffSpecs(currentSpec, nextSpec)
       }
     )
@@ -66,4 +72,24 @@ function Gyne (context = {}) {
   function patch (diff) {
     return stackResource.patch(diff)
   }
+}
+
+const { indexBy, prop } = require('ramda')
+
+const indexByName = indexBy(prop('Name'))
+
+function fixNetworkIds (currentSpec, nextSpec) {
+  // TODO clean up
+  // change next service networks to use ids as current
+  const networksByName = indexByName(currentSpec.networks)
+  nextSpec.services.forEach(service => {
+    if (service.Networks) {
+      service.Networks.forEach(network => {
+        const currentNetwork = networksByName[network.Target]
+        if (currentNetwork) {
+          network.Target = currentNetwork.Id
+        }
+      })
+    }
+  })
 }
