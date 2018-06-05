@@ -33,8 +33,6 @@ function diffResources (resourceName, current = [], next = []) {
   const currentNames = getNames(current)
   const nextNames = getNames(next)
 
-  console.log('nextNames', nextNames)
-
   assertNoDuplicateNames(
     currentNames,
     `expected current ${resourceName} names to have no duplicates`
@@ -57,8 +55,11 @@ function diffResources (resourceName, current = [], next = []) {
   const getUpdate = pipe(
     map(name => {
       const current = currentByName[name]
+      console.log('current', JSON.stringify(current, null, 2))
       const next = nextByName[name]
+      console.log('next', JSON.stringify(next, null, 2))
       const diff = diffObjects(current, next)
+      console.log('diff', JSON.stringify(diff, null, 2))
       if (diff.hasChanged) return next
     }),
     filter(complement(isNil))

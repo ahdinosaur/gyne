@@ -24,7 +24,8 @@ const constraints = {
     },
     {
       name: 'labels',
-      validator: validateIsObject
+      validator: validateIsObject,
+      defaultValue: {}
     },
     {
       name: 'command',
@@ -71,7 +72,8 @@ const constraints = {
           },
           {
             name: 'protocol',
-            validator: validateIsWhitelistedValue(['tcp', 'udp', 'sctp'])
+            validator: validateIsWhitelistedValue(['tcp', 'udp', 'sctp']),
+            defaultValue: 'tcp'
           },
           {
             name: 'target',
@@ -85,7 +87,8 @@ const constraints = {
           },
           {
             name: 'mode',
-            validator: validateIsWhitelistedValue(['ingress', 'host'])
+            validator: validateIsWhitelistedValue(['ingress', 'host']),
+            defaultValue: 'ingress'
           }
         ]
       }
@@ -100,7 +103,8 @@ const constraints = {
             validator: validateIsArrayOf(validateIsString)
           }
         ]
-      }
+      },
+      defaultValue: {}
     },
     {
       name: 'restart_policy',
@@ -109,10 +113,16 @@ const constraints = {
         fields: [
           {
             name: 'condition',
-            validator: validateIsWhitelistedValue(['none', 'on-failure', 'any'])
+            validator: validateIsWhitelistedValue([
+              'none',
+              'on-failure',
+              'any'
+            ]),
+            defaultValue: 'any'
           }
         ]
-      }
+      },
+      defaultValue: {}
     },
     {
       name: 'networks',

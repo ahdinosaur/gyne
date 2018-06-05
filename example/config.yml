@@ -1,72 +1,72 @@
-volumes:
-  - name: dyne-volume
-networks:
-  - name: dyne-network
-    driver: overlay
+#volumes:
+  #- name: dyne-volume
+#networks:
+  #- name: dyne-network
+    #driver: overlay
 services:
   - name: test-up-service
     image: nginx:alpine
     ports:
-      - target: 4001
-        published: 8080
+      - target: 80
+        published: 4001
         mode: host
-stacks:
-  - name: dyne-webproxy
-    services:
-      - name: dyne-webproxy
-        image: traefik:1.5
-        command:
-          - "--api"
-          - "--docker"
-          - "--docker.swarmmode"
-          - "--docker.domain=example.com"
-          - "--docker.exposedbydefault=false"
-          - "--docker.watch"
-        volumes:
-          - type: bind
-            source: /var/run/docker.sock
-            target: /var/run/docker.sock
-            is_read_only: true
-        ports:
-          - target: 4000
-            published: 4000
-            mode: host
-        placement:
-          constraints:
-            - node.role == manager
-        restart_policy:
-          condition: on-failure
-        networks:
-          - name: dyne-network
-            is_external: true
-  - name: dyne-stack
-    networks:
-      - name: network
-        driver: overlay
-    volumes:
-      - name: volume
-    services:
-      - name: viz
-        image: dockersamples/visualizer
-        ports:
-          - target: 8080
-            published: 8080
-            mode: host
-        volumes:
-          - type: bind
-            source: /var/run/docker.sock
-            target: /var/run/docker.sock
-            is_read_only: true
-        labels:
-          traefik.enable: true
-          traefik.backend: dyne-stack__viz
-          traefik.port: 8080
-          traefik.frontend.rule: Host:viz.example.com
-          traefik.docker.network: dyne-network
-        networks:
-          - name: dyne-network
-            is_external: true
-          - name: network
-        placement:
-          constraints:
-            - node.role == manager
+#stacks:
+  #- name: dyne-webproxy
+    #services:
+      #- name: dyne-webproxy
+        #image: traefik:1.5
+        #command:
+          #- "--api"
+          #- "--docker"
+          #- "--docker.swarmmode"
+          #- "--docker.domain=example.com"
+          #- "--docker.exposedbydefault=false"
+          #- "--docker.watch"
+        #volumes:
+          #- type: bind
+            #source: /var/run/docker.sock
+            #target: /var/run/docker.sock
+            #is_read_only: true
+        #ports:
+          #- target: 4000
+            #published: 4000
+            #mode: host
+        #placement:
+          #constraints:
+            #- node.role == manager
+        #restart_policy:
+          #condition: on-failure
+        #networks:
+          #- name: dyne-network
+            #is_external: true
+  #- name: dyne-stack
+    #networks:
+      #- name: network
+        #driver: overlay
+    #volumes:
+      #- name: volume
+    #services:
+      #- name: viz
+        #image: dockersamples/visualizer
+        #ports:
+          #- target: 8080
+            #published: 8080
+            #mode: host
+        #volumes:
+          #- type: bind
+            #source: /var/run/docker.sock
+            #target: /var/run/docker.sock
+            #is_read_only: true
+        #labels:
+          #traefik.enable: true
+          #traefik.backend: dyne-stack__viz
+          #traefik.port: 8080
+          #traefik.frontend.rule: Host:viz.example.com
+          #traefik.docker.network: dyne-network
+        #networks:
+          #- name: dyne-network
+            #is_external: true
+          #- name: network
+        #placement:
+          #constraints:
+            #- node.role == manager

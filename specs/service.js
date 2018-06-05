@@ -9,7 +9,8 @@ const {
   not,
   pipe,
   prop,
-  props
+  props,
+  tap
 } = require('ramda')
 const { ensureArray } = require('ramda-adjunct')
 
@@ -29,7 +30,8 @@ const fromConfig = populateFields({
   TaskTemplate: {
     ContainerSpec: {
       Image: prop('image'),
-      Command: pipe(prop('command'), defaultTo(['']), ensureArray),
+      Command: prop('command'),
+      Args: prop('args'),
       Env: prop('env'),
       Mounts: value =>
         pipe(
@@ -62,6 +64,7 @@ const fromConfig = populateFields({
       })
     ),
     RestartPolicy: pipe(
+      tap(console.log),
       prop('restart_policy'),
       populateFields({
         Condition: prop('condition')
@@ -78,7 +81,7 @@ const fromConfig = populateFields({
           Protocol: prop('protocol'),
           TargetPort: prop('target'),
           PublishedPort: prop('published'),
-          PublishedMode: prop('mode')
+          PublishMode: prop('mode')
         })
       )
     )
@@ -136,7 +139,7 @@ const fromInspect = pipe(
           Protocol: true,
           TargetPort: true,
           PublishedPort: true,
-          PublishedMode: true
+          PublishMode: true
         }
       ]
     },
