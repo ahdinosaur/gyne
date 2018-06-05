@@ -15,7 +15,7 @@ given you have a `config.yml` that declares the complete state of your Docker sw
 you run:
 
 ```shell
-dyne config.yml
+gyne up config.yml
 ```
 
 first, you will be shown the diff between the inspected state of the swarm and your declared state.
@@ -27,17 +27,18 @@ if you accept, the Docker swarm will be updated to the declared state.
 ## example
 
 ```shell
+npm install -g gyne
 git clone git@github.com:buttcloud/gyne
 cd gyne
 # bring up your docker swarm
-./bin.js up example/config.yml
+gyne up example/config.yml
 # check out your docker swarm!
 docker service ls
 docker stack ls
 curl -H "Host:service.example.com" localhost:4000/
 curl -H "Host:viz.example.com" localhost:4000/
 # bring down your docker swarm
-./bin.js down
+gyne down
 ```
 
 ## cli
