@@ -11,8 +11,7 @@ const {
   not,
   pipe,
   prop,
-  props,
-  tap
+  props
 } = require('ramda')
 const { ensureArray } = require('ramda-adjunct')
 
@@ -68,7 +67,6 @@ const fromConfig = populateFields({
       })
     ),
     RestartPolicy: pipe(
-      tap(console.log),
       prop('restart_policy'),
       populateFields({
         Condition: prop('condition')
