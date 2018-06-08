@@ -1,6 +1,7 @@
 const {
-  validateIsString,
+  validateIsBoolean,
   validateIsObject,
+  validateIsString,
   validateObjectWithConstraints
 } = require('folktale-validations')
 
@@ -18,6 +19,11 @@ const constraints = {
     {
       name: 'driver',
       validator: validateIsString
+    },
+    {
+      name: 'is_attachable',
+      validator: validateIsBoolean,
+      defaultValue: false
     }
   ]
 }

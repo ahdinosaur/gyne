@@ -13,13 +13,15 @@ const fromConfig = populateFields({
     defaultTo({}),
     map(coerceString)
   ),
-  Driver: prop('driver')
+  Driver: prop('driver'),
+  Attachable: prop('is_attachable')
 })
 
 const fromInspect = pickFields({
   Name: true,
   Labels: true,
-  Driver: true
+  Driver: true,
+  Attachable: true
 })
 
 module.exports = {
