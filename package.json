@@ -1,6 +1,6 @@
 {
   "name": "gyne",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "manage a swarm of Docker stacks, networks, and volumes",
   "main": "index.js",
   "bin": "bin.js",
