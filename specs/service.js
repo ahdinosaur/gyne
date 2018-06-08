@@ -6,12 +6,14 @@ const {
   identity,
   ifElse,
   isNil,
+  join,
   map,
   merge,
   not,
   pipe,
   prop,
-  props
+  props,
+  toPairs
 } = require('ramda')
 const { ensureArray } = require('ramda-adjunct')
 
@@ -35,7 +37,14 @@ const fromConfig = populateFields({
       Image: prop('image'),
       Command: pipe(prop('command'), coerceArray),
       Args: pipe(prop('args'), coerceArray),
-      Env: prop('env'),
+      Env: pipe(
+        prop('env'),
+        ifElse(
+          isNil,
+          identity,
+          pipe(map(coerceString), toPairs, map(join('=')))
+        )
+      ),
       Mounts: value =>
         pipe(
           prop('volumes'),

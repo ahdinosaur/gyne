@@ -12,6 +12,8 @@ services:
       traefik.port: 80
       traefik.frontend.rule: Host:service.example.com
       traefik.docker.network: gyne-network
+    env:
+      hello: goodbye
     networks:
       - name: gyne-network
         is_external: true

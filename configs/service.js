@@ -42,6 +42,10 @@ const constraints = {
       )
     },
     {
+      name: 'env',
+      validator: validateIsObject
+    },
+    {
       name: 'volumes',
       validator: validateIsArray,
       children: {
