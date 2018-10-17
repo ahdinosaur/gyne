@@ -1,7 +1,5 @@
-const { isNil, merge } = require('ramda')
+const { merge } = require('ramda')
 const Log = require('pino')
-const prettyLogs = require('pino-colada')
-const pumpify = require('pumpify')
 
 const DockerApi = require('../util/docker')
 
@@ -20,11 +18,7 @@ function createContext (context) {
 function createLog (log = {}) {
   if (log.pino) return log
 
-  const logStream = isNil(log.stream)
-    ? log.pretty ? pumpify(prettyLogs(), process.stdout) : process.stdout
-    : log.stream
-
-  return Log(log, logStream)
+  return Log(log, log.stream)
 }
 
 function createDocker (docker = {}) {

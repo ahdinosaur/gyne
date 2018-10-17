@@ -1,11 +1,13 @@
 const isStream = require('is-stream')
 const {
+  orValidator,
   predicateValidator,
   validateIsObject,
   validateIsBoolean,
   validateIsString,
   validateObjectWithConstraints
 } = require('folktale-validations')
+const isPinoValidator = require('../util/isPinoValidator')
 
 module.exports = validateObjectWithConstraints({
   fields: [
@@ -27,24 +29,26 @@ module.exports = validateObjectWithConstraints({
     },
     {
       name: 'log',
-      validator: validateIsObject,
-      value: {
-        fields: [
-          {
-            name: 'level',
-            validator: validateIsString
-          },
-          {
-            name: 'pretty',
-            validator: validateIsBoolean,
-            defaultValue: false
-          },
-          {
-            name: 'stream',
-            validator: predicateValidator(isStream.writable)
-          }
-        ]
-      }
+      validator: orValidator(
+        isPinoValidator.validator,
+        validateObjectWithConstraints({
+          fields: [
+            {
+              name: 'level',
+              validator: validateIsString
+            },
+            {
+              name: 'prettyPrint',
+              validator: validateIsBoolean,
+              defaultValue: false
+            },
+            {
+              name: 'stream',
+              validator: predicateValidator(isStream.writable)
+            }
+          ]
+        })
+      )
     }
   ]
 })
