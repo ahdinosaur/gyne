@@ -1,4 +1,4 @@
-const { apply, defaultTo, evolve, map, pipe, props } = require('ramda')
+const { apply, defaultTo, evolve, map, pipe, prop, props } = require('ramda')
 
 const Namespace = require('./util/namespace')
 const populateFields = require('../util/populateFields')
@@ -7,6 +7,8 @@ const coerceString = require('../util/coerceString')
 
 const fromConfig = populateFields({
   Name: pipe(props(['namespace', 'name']), apply(Namespace.name)),
+  Driver: prop('driver'),
+  DriverOpts: pipe(prop('options'), defaultTo({}), map(coerceString)),
   Labels: pipe(
     props(['namespace', 'labels']),
     apply(Namespace.labels),
@@ -18,9 +20,13 @@ const fromConfig = populateFields({
 const fromInspect = pipe(
   pickFields({
     Name: true,
+    Driver: true,
+    DriverOpts: true,
     Labels: true
   }),
   evolve({
+    Driver: defaultTo('local'),
+    DriverOpts: defaultTo({}),
     Labels: defaultTo({})
   })
 )

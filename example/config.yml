@@ -52,6 +52,9 @@ stacks:
         driver: overlay
     volumes:
       - name: volume
+        driver: local
+        options:
+          mountpoint: examples/mountpoint
     services:
       - name: viz
         image: dockersamples/visualizer

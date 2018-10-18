@@ -12,6 +12,14 @@ const constraints = {
       isRequired: true
     },
     {
+      name: 'driver',
+      validator: validateIsString
+    },
+    {
+      name: 'options',
+      validator: validateIsObject
+    },
+    {
       name: 'labels',
       validator: validateIsObject
     }
