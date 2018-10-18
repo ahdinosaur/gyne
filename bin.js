@@ -66,7 +66,7 @@ const args = parseArgs(process.argv.slice(2), {
   } else if (args._.length > 0) {
     const context = {
       log: {
-        pretty: args.pretty,
+        prettyPrint: args.pretty,
         level: logLevelFromArgs(args)
       }
     }
